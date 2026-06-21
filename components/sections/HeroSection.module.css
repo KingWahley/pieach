@@ -1,0 +1,200 @@
+/* Hero Container styling */
+.container-hero {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  padding: 40px 60px;
+  overflow: hidden;
+  cursor: none; /* Disables native OS cursor */
+}
+
+/* Glassmorphic typography card */
+.glass-card {
+  position: absolute;
+  top: 58%;
+  left: 60px;
+  transform: translateY(-50%);
+  width: 580px;
+  z-index: 10;
+  color: white;
+}
+
+.hero-title {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 84px;
+  font-weight: 700;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  letter-spacing: -3px;
+}
+
+.hero-line {
+  display: inline-block;
+}
+
+.hero-desc {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.8;
+  margin-bottom: 48px;
+  max-width: 540px;
+}
+
+/* Custom CTA Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 40px;
+  background: white;
+  color: black;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 1px solid white;
+  border-radius: 0;
+  text-decoration: none;
+  cursor: pointer !important;
+  transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+  opacity: 0; /* Handled by GSAP timeline */
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+/* Image wrappers */
+.colosseum-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* Background darkness gradient to secure typography contrast */
+.colosseum-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 40%, rgba(0, 0, 0, 0) 80%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.image-base, .image-reveal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.colosseum {
+  object-fit: cover;
+}
+
+/* Reveal blueprint styling using custom variable mask mapping */
+.colosseum-reveal {
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle 120px at var(--x, -100%) var(--y, -100%), black 60%, transparent 100%);
+  mask-image: radial-gradient(circle 120px at var(--x, -100%) var(--y, -100%), black 60%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.visible {
+  opacity: 1;
+}
+
+/* Custom Cursor pointers styling */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  background: white;
+  mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.cursor-ring {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #d4af37;
+  opacity: 0;
+  transition: opacity 0.3s, width 0.3s, height 0.3s, background 0.3s, border-color 0.3s;
+}
+
+/* Hover modifiers for the custom cursors */
+.cursor-ring.hovering {
+  width: 60px;
+  height: 60px;
+  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.cursor-dot.hovering {
+  opacity: 0;
+}
+
+/* Responsiveness (max-width: 768px) */
+@media (max-width: 768px) {
+  .container-hero {
+    padding: 20px;
+  }
+
+  .glass-card {
+    width: calc(100% - 40px);
+    left: 20px;
+    padding: 30px;
+    bottom: 40px;
+    top: auto;
+    transform: none;
+  }
+
+  .hero-title {
+    font-size: 38px;
+  }
+
+  .hero-desc {
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+
+  /* Linear overlay gradient changes flow direction from left-right to bottom-top */
+  .colosseum-wrapper::after {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0) 80%);
+  }
+}
+
+/* Hide custom cursors for touch screen pointers */
+@media (hover: none) and (pointer: coarse) {
+  .container-hero {
+    cursor: auto !important;
+  }
+  .cursor-dot,
+  .cursor-ring {
+    display: none !important;
+  }
+}
