@@ -25,10 +25,10 @@ export default function ProjectsPage() {
     : PROJECTS.filter((p) => p.groups && p.groups.includes(activeFilter));
 
   return (
-    <div className="bg-white text-neutral-900 pt-20">
+    <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Banner Section */}
-      <section className="relative py-28 sm:py-36 lg:py-40 bg-neutral-900 text-white overflow-hidden">
+      <section className="relative h-[60vh] min-h-[450px] flex items-center bg-neutral-900 text-white overflow-hidden">
         {/* Background Image: wood-slat texture (service_mgmt.png) */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center opacity-60 mix-blend-luminosity scale-105"
@@ -38,18 +38,18 @@ export default function ProjectsPage() {
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-neutral-950/40 via-neutral-950/70 to-[#1c110f]/80" />
 
         {/* Content */}
-        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24">
           <div className="max-w-3xl">
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight leading-tight uppercase mb-6">
+            <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
               Projects That Shape<br />Experiences
             </h1>
-            <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light mb-10 max-w-xl">
+            <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light mb-8 max-w-xl">
               Browse our portfolio of residential, architectural, and master planning designs that define modern West Africa.
             </p>
             <div>
               <a
                 href="#projects-grid-section"
-                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-gold hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-4 transition duration-300 shadow-md"
+                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-gold hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 shadow-md"
               >
                 Explore Projects
               </a>

@@ -88,10 +88,10 @@ const PHILOSOPHY_ITEMS = [
 
 export default function CareersPage() {
   return (
-    <div className="bg-white text-neutral-900 pt-20">
+    <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Banner Section */}
-      <section className="relative min-h-[70vh] flex items-end pb-20 pt-36 bg-neutral-950 text-white overflow-hidden">
+      <section className="relative h-[60vh] min-h-[450px] flex items-center bg-neutral-950 text-white overflow-hidden">
         {/* Background Image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center opacity-55 scale-102 transition-transform duration-700"
@@ -99,24 +99,24 @@ export default function CareersPage() {
         />
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950 via-neutral-950/45 to-neutral-950/20" />
 
-        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24">
           <div className="max-w-4xl">
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-7xl font-light tracking-tight leading-none uppercase mb-6">
+            <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
               Build Spaces. Shape<br />Experiences.
             </h1>
-            <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light mb-10 max-w-xl">
+            <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light mb-8 max-w-xl">
               Join a multidisciplinary team shaping the future of West Africa.
             </p>
             <div className="flex flex-wrap gap-4">
               <a
                 href="#open-roles-section"
-                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-gold hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-4 transition duration-300 shadow-md rounded-sm active:scale-95"
+                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-gold hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 shadow-md rounded-sm active:scale-95"
               >
                 View Open Roles
               </a>
               <a
                 href="#philosophy-section"
-                className="inline-flex items-center justify-center border-2 border-white hover:bg-white hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-4 transition duration-300 shadow-md rounded-sm active:scale-95"
+                className="inline-flex items-center justify-center border-2 border-white hover:bg-white hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 shadow-md rounded-sm active:scale-95"
               >
                 Our Philosophy
               </a>

@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import Lenis from 'lenis';
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { ZoomParallax } from '@/components/ui/zoom-parallax';
 
@@ -52,25 +51,7 @@ const images = [
 ];
 
 export default function ProjectsSection() {
-  useEffect(() => {
-    const lenis = new Lenis({
-      smoothWheel: true,
-      lerp: 0.085,
-    });
-    
-    let frame = 0;
-    function raf(time) {
-      lenis.raf(time);
-      frame = requestAnimationFrame(raf);
-    }
-    
-    frame = requestAnimationFrame(raf);
-    
-    return () => {
-      cancelAnimationFrame(frame);
-      lenis.destroy();
-    };
-  }, []);
+
 
   return (
     <section id="projects" className="bg-[#090d12] text-white">

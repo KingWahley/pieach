@@ -36,10 +36,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-white text-neutral-900 pt-20">
+    <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Section */}
-      <section className="relative h-[85vh] min-h-[550px] flex items-center bg-neutral-950 text-white overflow-hidden">
+      <section className="relative h-[60vh] min-h-[450px] flex items-center bg-neutral-950 text-white overflow-hidden">
         {/* Background Image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center opacity-65 scale-102"
@@ -48,39 +48,29 @@ export default function ContactPage() {
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-neutral-950/20" />
 
         {/* Content Container */}
-        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-12">
+        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24">
           <div className="max-w-3xl space-y-6">
-            <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal leading-tight tracking-tight text-white">
+            <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
               Let's Build Something<br />Exceptional
             </h1>
-            <p className="font-sans text-neutral-300 text-sm sm:text-base md:text-lg max-w-xl font-light leading-relaxed">
+            <p className="font-sans text-neutral-300 text-sm sm:text-base max-w-xl font-light leading-relaxed">
               Connect with Pieach to discuss architecture, interiors, landscapes, and visionary spaces designed with purpose.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href="/book-appointment"
-                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-brown-hover text-white text-[10px] font-bold uppercase tracking-widest px-8 py-4 transition duration-300 shadow-md rounded-none"
+                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-brown-hover text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 shadow-md rounded-none"
               >
                 BOOK AN APPOINTMENT
               </Link>
               <a
                 href="#inquiry-section"
-                className="inline-flex items-center justify-center border border-white text-white text-[10px] font-bold uppercase tracking-widest px-8 py-4 transition duration-300 hover:bg-white hover:text-neutral-950 shadow-md rounded-none"
+                className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 hover:bg-white hover:text-neutral-950 shadow-md rounded-none"
               >
                 SEND AN INQUIRY
               </a>
             </div>
           </div>
-        </div>
-
-        {/* Down Indicator */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center space-y-2 z-20">
-          <span className="font-sans font-bold text-[9px] uppercase tracking-[0.3em] text-white/50">
-            OFFICES
-          </span>
-          <svg className="w-4 h-4 text-white/50 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
         </div>
       </section>
 

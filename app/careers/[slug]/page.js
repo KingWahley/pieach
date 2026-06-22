@@ -232,19 +232,19 @@ export default async function CareerDetailsPage({ params }) {
   const relatedJobs = CAREERS_DATA.filter((j) => j.slug !== slug);
 
   return (
-    <div className="bg-white text-neutral-900 pt-20">
+    <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Detail Banner (Sand-Gold/Taupe Background) */}
-      <section className="bg-[#B5A898] text-white pt-28 pb-20 lg:pt-36 lg:pb-24 border-b border-neutral-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="bg-[#B5A898] text-white h-[60vh] min-h-[450px] flex items-center border-b border-neutral-200">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24">
           
           {/* Top row: Title/Info and Apply Button */}
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
             <div className="space-y-3 max-w-3xl">
-              <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-white uppercase leading-none">
+              <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
                 {job.title}
               </h1>
-              <span className="block font-sans text-[10px] font-bold tracking-[0.25em] text-white/90 uppercase">
+              <span className="block font-sans text-xs font-bold tracking-[0.25em] text-white/90 uppercase">
                 {job.location.toUpperCase()} — {job.type.toUpperCase()}
               </span>
               <p className="font-sans text-white/80 text-sm sm:text-base leading-relaxed font-light pt-2">
@@ -256,29 +256,33 @@ export default async function CareerDetailsPage({ params }) {
             <div className="flex-shrink-0 pt-2">
               <a
                 href="#application-form"
-                className="inline-flex items-center justify-center border border-white/60 hover:bg-white hover:text-[#B5A898] text-white text-[10px] font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 rounded-none cursor-pointer"
+                className="inline-flex items-center justify-center border border-white/60 hover:bg-white hover:text-[#B5A898] text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 rounded-none cursor-pointer"
               >
                 APPLY
               </a>
             </div>
           </div>
 
-          {/* Role Description Boxed Area */}
-          <div className="border border-white/40 p-8 md:p-10 mt-12">
+        </div>
+      </section>
+
+      {/* Role Description (Outside Hero to fit 45vh height) */}
+      <section className="bg-[#FAF8F5] py-12 border-b border-neutral-200 text-neutral-900">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="border border-brand-brown/15 p-8 md:p-10 bg-white">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
               <div className="lg:col-span-4">
-                <span className="font-serif text-3xl sm:text-4xl text-white font-normal uppercase tracking-wide block">
+                <span className="font-serif text-2xl sm:text-3xl text-brand-brown font-normal uppercase tracking-wide block">
                   ROLE DESCRIPTION
                 </span>
               </div>
               <div className="lg:col-span-8">
-                <p className="font-sans text-white text-sm sm:text-base leading-relaxed font-light max-w-4xl">
+                <p className="font-sans text-neutral-600 text-sm sm:text-base leading-relaxed font-light max-w-4xl">
                   {job.description}
                 </p>
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
