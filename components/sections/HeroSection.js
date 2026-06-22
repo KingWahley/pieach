@@ -204,8 +204,8 @@ export default function HeroSection() {
           <div className={styles['image-base']}>
             <Image
               ref={colosseumRef}
-              src="/colosseum.png"
-              alt="Colosseum Base"
+              src="/assets/homepagehero/front.jpg"
+              alt="Hero Base Background"
               fill
               priority
               sizes="100vw"
@@ -215,8 +215,8 @@ export default function HeroSection() {
           <div className={styles['image-reveal']}>
             <Image
               ref={revealRef}
-              src="/back.png"
-              alt="Colosseum Detail Reveal"
+              src="/assets/homepagehero/back.png"
+              alt="Hero Reveal Foreground"
               fill
               sizes="100vw"
               className={styles['colosseum-reveal']}

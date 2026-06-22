@@ -7,43 +7,43 @@ import { ZoomParallax } from '@/components/ui/zoom-parallax';
 // Replace with your project data
 const images = [
   {
-    src: 'https://pieach.com/wp-content/uploads/2023/10/PJ18101-4.jpg',
+    src: '/assets/projects/uba_ghana_head_office.jpg',
     alt: 'uba structure',
     title: 'UBA Ghana Head Office',
     description: 'Accra, Ghana',
   },
   {
-    src: 'https://pieach.com/wp-content/uploads/2022/10/c2-2-scaled.jpg',
+    src: '/assets/projects/temple_road.jpg',
     alt: 'Urban cityscape at sunset',
     title: 'Temple Road',
     description: 'Ikoyi, Lagos, Nigeria.',
   },
   {
-    src: 'https://pieach.com/wp-content/uploads/2023/11/PJ7115B_3-scaled.jpg',
+    src: '/assets/projects/meliora_residential_tower.jpg',
     alt: 'Abstract geometric pattern',
     title: 'Meliora Residential Tower',
     description: 'Gerrard Road, Ikoyi, Lagos',
   },
   {
-    src: 'https://pieach.com/wp-content/uploads/2023/11/PJ7115A_3.jpg',
+    src: '/assets/projects/west_foster_apartments.jpg',
     alt: 'Modern architecture building',
     title: 'West Foster Apartments',
     description: 'Ikoyi, Lagos, Nigeria',
   },
   {
-    src: 'https://pieach.com/wp-content/uploads/2023/11/9108-1-scaled.jpg',
+    src: '/assets/projects/the_sphere.jpg',
     alt: 'Mountain landscape',
     title: 'The Sphere',
     description: 'Victoria Island, Lagos, Nigeria',
   },
   {
-    src: 'https://pieach.com/wp-content/uploads/2023/11/PJ13107_2-scaled.jpg',
+    src: '/assets/projects/falomo_shopping_center.jpg',
     alt: 'Minimalist design elements',
     title: 'Falomo Shopping Center',
     description: 'Ikoyi, Lagos State, Nigeria',
   },
   {
-    src: 'https://pieach.com/wp-content/uploads/2023/10/PJ17106-2-scaled.jpg',
+    src: '/assets/projects/abeokuta_shopping_centre.jpg',
     alt: 'Ocean waves and beach',
     title: 'Abeokuta Shopping Centre',
     description: 'Abeokuta, Ogun State, Nigeria.',

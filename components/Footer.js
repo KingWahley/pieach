@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Logo from "./ui/Logo";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -13,7 +12,13 @@ export default function Footer() {
           
           {/* Logo & About Info */}
           <div className="flex flex-col space-y-6">
-            <Logo dark={true} />
+            <Link href="/" className="transition-opacity hover:opacity-80 w-fit block">
+              <img 
+                src="/images/mainlogo1.png" 
+                alt="PIEACH Logo" 
+                className="h-16 w-auto object-contain"
+              />
+            </Link>
             <p className="font-sans text-neutral-400 text-sm leading-relaxed max-w-xs font-light">
               Architecture for the human condition — crafted with precision, guided by vision.
             </p>

@@ -77,8 +77,12 @@ export default function OurTeamSection({ excludeSlug = "", title = "Our Team" })
               className="group flex flex-col rounded-sm overflow-hidden shadow-sm hover:shadow-md border border-neutral-100 bg-[#fafafa] transition duration-300 cursor-pointer"
             >
               {/* Profile Image container */}
-              <div className="relative aspect-[3/4] bg-gradient-to-b from-neutral-50 to-neutral-200 overflow-hidden flex items-center justify-center">
-                <ProfileAvatar gender={member.gender} />
+              <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden flex items-center justify-center">
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                />
                 
                 {/* Thin overlay grid lines for architectural blueprint vibe */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />

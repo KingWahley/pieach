@@ -162,8 +162,12 @@ export default async function TeamMemberDetailsPage({ params }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start mb-20">
           
           {/* Left: Silhouette Profile */}
-          <div className="lg:col-span-5 relative aspect-[3/4] rounded-sm overflow-hidden bg-gradient-to-b from-neutral-50 to-neutral-200 shadow-lg border border-neutral-200/50">
-            <DetailAvatar gender={member.gender} />
+          <div className="lg:col-span-5 relative aspect-[3/4] rounded-sm overflow-hidden bg-neutral-100 shadow-lg border border-neutral-200/50">
+            <img
+              src={member.image}
+              alt={member.name}
+              className="w-full h-full object-cover"
+            />
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
           </div>
 
