@@ -10,13 +10,13 @@ export default function TeamHeroSection() {
         }}
       />
       
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 z-10 bg-black/60" />
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950/70 via-transparent to-transparent" />
+      {/* Gradients Overlay */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/45 to-transparent" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950/70 via-transparent to-black/35" />
 
       {/* Hero Content */}
-      <div className="relative z-20 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pt-24">
-        <div className="max-w-3xl">
+      <div className="relative z-20 mx-auto max-w-[1600px] w-full px-5 sm:px-8 lg:px-12 pt-24">
+        <div className="max-w-4xl">
           {/* Main Title */}
           <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6 flex flex-col">
             <span>The Minds Behind</span>

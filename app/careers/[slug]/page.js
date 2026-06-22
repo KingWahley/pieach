@@ -235,12 +235,12 @@ export default async function CareerDetailsPage({ params }) {
     <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Detail Banner (Sand-Gold/Taupe Background) */}
-      <section className="bg-[#B5A898] text-white h-[60vh] min-h-[450px] flex items-center border-b border-neutral-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24">
+      <section className="relative bg-[#B5A898] text-white h-[60vh] min-h-[450px] flex items-center justify-start overflow-hidden border-b border-neutral-200">
+        <div className="mx-auto max-w-[1600px] w-full px-5 sm:px-8 lg:px-12 pt-24">
           
           {/* Top row: Title/Info and Apply Button */}
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-            <div className="space-y-3 max-w-3xl">
+            <div className="space-y-3 max-w-4xl">
               <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
                 {job.title}
               </h1>
@@ -256,7 +256,7 @@ export default async function CareerDetailsPage({ params }) {
             <div className="flex-shrink-0 pt-2">
               <a
                 href="#application-form"
-                className="inline-flex items-center justify-center border border-white/60 hover:bg-white hover:text-[#B5A898] text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 rounded-none cursor-pointer"
+                className="inline-flex items-center justify-center bg-white text-neutral-900 text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold hover:text-white transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
                 APPLY
               </a>

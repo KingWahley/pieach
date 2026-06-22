@@ -91,15 +91,18 @@ export default function CareersPage() {
     <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Banner Section */}
-      <section className="relative h-[60vh] min-h-[450px] flex items-center bg-neutral-950 text-white overflow-hidden">
+      <section className="relative h-[60vh] min-h-[450px] flex items-center justify-start overflow-hidden bg-neutral-900">
         {/* Background Image */}
         <div
-          className="absolute inset-0 z-0 bg-cover bg-center opacity-55 scale-102 transition-transform duration-700"
+          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 ease-out scale-105"
           style={{ backgroundImage: "url('/assets/service_masterplanning.png')" }}
         />
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950 via-neutral-950/45 to-neutral-950/20" />
+        
+        {/* Gradients Overlay */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/45 to-transparent" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950/70 via-transparent to-black/35" />
 
-        <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full pt-24">
+        <div className="relative z-20 mx-auto max-w-[1600px] w-full px-5 sm:px-8 lg:px-12 pt-24">
           <div className="max-w-4xl">
             <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
               Build Spaces. Shape<br />Experiences.
@@ -107,16 +110,16 @@ export default function CareersPage() {
             <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light mb-8 max-w-xl">
               Join a multidisciplinary team shaping the future of West Africa.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <a
                 href="#open-roles-section"
-                className="inline-flex items-center justify-center bg-brand-brown hover:bg-brand-gold hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 shadow-md rounded-sm active:scale-95"
+                className="inline-flex items-center justify-center bg-brand-gold text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold-hover hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 View Open Roles
               </a>
               <a
                 href="#philosophy-section"
-                className="inline-flex items-center justify-center border-2 border-white hover:bg-white hover:text-brand-navy text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 transition duration-300 shadow-md rounded-sm active:scale-95"
+                className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm hover:bg-white hover:text-brand-navy transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 Our Philosophy
               </a>
