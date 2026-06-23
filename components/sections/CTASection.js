@@ -6,12 +6,9 @@ export default function CTASection() {
       
       {/* Background Image */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center opacity-45 mix-blend-luminosity scale-105"
-        style={{ backgroundImage: "url('/assets/cta_background.png')" }}
+        className="absolute inset-0 z-0 bg-cover bg-center opacity-40 scale-105"
+        style={{ backgroundImage: "url('/assets/cta.png')" }}
       />
-      
-      {/* Rich Dark Vignette Overlay (Dark slate/steel blue) */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#0B1116] via-[#141D26]/90 to-[#1C2731]/80" />
 
       {/* Content Container */}
       <div className="relative z-20 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">

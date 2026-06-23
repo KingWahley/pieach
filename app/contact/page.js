@@ -43,7 +43,7 @@ export default function ContactPage() {
         {/* Background Image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 ease-out scale-105"
-          style={{ backgroundImage: "url('/assets/hero_background.png')" }}
+          style={{ backgroundImage: "url('/assets/contactHero.jpg')" }}
         />
         
         {/* Gradients Overlay */}

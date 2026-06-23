@@ -377,23 +377,23 @@ export default function CareersPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
                 <img
-                  src="/assets/service_landscape.png"
+                  src="/assets/team/life inside/1.png"
                   alt="Team designing model"
-                  className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition duration-500"
+                  className="absolute inset-0 w-full h-full object-cover transition duration-500"
                 />
               </div>
               <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
                 <img
-                  src="/assets/about_image.png"
+                  src="/assets/team/life inside/2.png"
                   alt="Team member smiling"
-                  className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition duration-500"
+                  className="absolute inset-0 w-full h-full object-cover transition duration-500"
                 />
               </div>
               <div className="relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
                 <img
-                  src="/assets/permanence_image.png"
+                  src="/assets/team/life inside/3.png"
                   alt="Architectural detailing physical model"
-                  className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition duration-500"
+                  className="absolute inset-0 w-full h-full object-cover transition duration-500"
                 />
               </div>
             </div>
@@ -401,9 +401,9 @@ export default function CareersPage() {
             {/* Row 2: 1 Full-width Wide Image */}
             <div className="relative aspect-[21/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
               <img
-                src="/assets/hero_background.png"
+                src="/assets/team/life inside/4.png"
                 alt="Workspace team collaboration"
-                className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition duration-500"
+                className="absolute inset-0 w-full h-full object-cover transition duration-500"
               />
             </div>
           </div>

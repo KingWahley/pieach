@@ -29,25 +29,25 @@ export default function OurDisciplinesSection() {
         </div>
 
         {/* Cards Grid with Staggered Offsets and Collapsed Borders */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:items-stretch">
           {DISCIPLINES.map((discipline, index) => (
             <div 
               key={index}
-              className={`border border-brand-brown p-8 lg:p-10 bg-white rounded-none transition-all duration-300 flex flex-col ${
+              className={`border border-brand-brown p-8 sm:p-10 lg:p-12 bg-white rounded-none transition-all duration-300 flex flex-col ${
                 index === 0
-                  ? ""
+                  ? "md:h-[calc(100%-100px)]"
                   : index === 1
-                  ? "-mt-px md:mt-24 md:-ml-px"
-                  : "-mt-px md:mt-0 md:-ml-px"
+                  ? "md:h-[calc(100%-50px)] -mt-px md:mt-0 md:-ml-px"
+                  : "md:h-full md:min-h-[400px] -mt-px md:mt-0 md:-ml-px"
               }`}
             >
-              <span className="font-serif text-xs text-brand-brown/60 block mb-6 tracking-wide">
+              <span className="font-serif text-[11px] text-brand-brown/70 block mb-6 tracking-widest">
                 {discipline.num}
               </span>
-              <h3 className="font-serif text-xl sm:text-2xl text-brand-brown mb-4 font-semibold leading-tight">
+              <h3 className="font-sans font-bold text-lg text-neutral-950 mb-4 tracking-tight">
                 {discipline.title}
               </h3>
-              <p className="font-serif text-brand-brown/85 text-[15px] sm:text-base leading-relaxed font-light">
+              <p className="font-serif text-neutral-700 text-sm sm:text-[15px] leading-relaxed font-light">
                 {discipline.description}
               </p>
             </div>

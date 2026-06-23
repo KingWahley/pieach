@@ -32,7 +32,7 @@ export default function ProjectsPage() {
         {/* Background Image: wood-slat texture (service_mgmt.png) */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 ease-out scale-105"
-          style={{ backgroundImage: "url('/assets/service_mgmt.png')" }}
+          style={{ backgroundImage: "url('/assets/projects/projectsHero.png')" }}
         />
         
         {/* Gradients Overlay */}
@@ -157,7 +157,7 @@ export default function ProjectsPage() {
             <div className="lg:col-span-6 relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-800 shadow-2xl border border-white/5">
               <div 
                 className="absolute inset-0 bg-cover bg-center opacity-85 mix-blend-luminosity hover:opacity-100 transition duration-500 scale-102"
-                style={{ backgroundImage: "url('/assets/service_architecture.png')" }}
+                style={{ backgroundImage: "url('/assets/our work/Landmark EcoFriendlyOffice.png')" }}
               />
               <div className="absolute inset-0 bg-brand-brown/10 pointer-events-none" />
             </div>
@@ -168,14 +168,14 @@ export default function ProjectsPage() {
                 FEATURED PROJECT
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight uppercase">
-                UBA Ghana Head Office
+                Landmark EcoFriendlyOffice
               </h2>
               <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light">
-                Our design for the United Bank for Africa headquarters in Accra integrates a passive cooling facade with architectural curves that optimize natural shading and daylight control. The structure represents our dedication to low-carbon commercial engineering and modern West African identity.
+                Our design for the Landmark EcoFriendlyOffice in Victoria Island integrates a passive cooling facade with architectural curves that optimize natural shading and daylight control. The structure represents our dedication to low-carbon commercial engineering and modern West African corporate identity.
               </p>
               <div className="pt-4">
                 <Link
-                  href="/projects/uba-ghana-head-office"
+                  href="/projects/landmark-ecofriendlyoffice"
                   className="inline-flex items-center justify-center border-2 border-white rounded-sm text-xs font-bold uppercase tracking-widest text-white px-8 py-4 transition duration-300 hover:bg-brand-gold hover:border-brand-gold hover:text-brand-navy shadow-md active:scale-95"
                 >
                   View Details

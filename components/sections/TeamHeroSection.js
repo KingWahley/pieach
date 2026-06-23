@@ -6,7 +6,7 @@ export default function TeamHeroSection() {
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 ease-out scale-105 grayscale contrast-125 brightness-50"
         style={{ 
-          backgroundImage: "url('/assets/hero_background.png')",
+          backgroundImage: "url('/assets/team/teamhero.png')",
         }}
       />
       
