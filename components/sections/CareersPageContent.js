@@ -494,7 +494,7 @@ export default function CareersPageContent() {
 
       {/* 6. Selection Journey Section */}
       <section ref={journeyRef} className="py-20 lg:py-24 bg-[#fafafa] text-neutral-900 border-t border-b border-neutral-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left md:text-center">
           
           <h2 className="journey-title font-serif text-3xl sm:text-4xl lg:text-5xl text-neutral-950 uppercase tracking-tight leading-none mb-16">
             Selection Journey
@@ -506,8 +506,8 @@ export default function CareersPageContent() {
             <div className="journey-line absolute top-7 left-[10%] right-[10%] h-[1px] bg-neutral-200 z-0 hidden md:block origin-left scale-x-0" />
             
             {/* Step 1 */}
-            <div className="relative z-10 flex flex-col items-center space-y-4">
-              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300">
+            <div className="relative z-10 flex flex-row md:flex-col items-center md:items-center space-x-4 md:space-x-0 space-y-0 md:space-y-4">
+              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300 shrink-0">
                 01
               </div>
               <span className="journey-step-label font-sans font-bold text-[10px] tracking-widest text-neutral-800 uppercase block">
@@ -516,8 +516,8 @@ export default function CareersPageContent() {
             </div>
 
             {/* Step 2 */}
-            <div className="relative z-10 flex flex-col items-center space-y-4">
-              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300">
+            <div className="relative z-10 flex flex-row md:flex-col items-center md:items-center space-x-4 md:space-x-0 space-y-0 md:space-y-4">
+              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300 shrink-0">
                 02
               </div>
               <span className="journey-step-label font-sans font-bold text-[10px] tracking-widest text-neutral-800 uppercase block">
@@ -526,8 +526,8 @@ export default function CareersPageContent() {
             </div>
 
             {/* Step 3 */}
-            <div className="relative z-10 flex flex-col items-center space-y-4">
-              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300">
+            <div className="relative z-10 flex flex-row md:flex-col items-center md:items-center space-x-4 md:space-x-0 space-y-0 md:space-y-4">
+              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300 shrink-0">
                 03
               </div>
               <span className="journey-step-label font-sans font-bold text-[10px] tracking-widest text-neutral-800 uppercase block">
@@ -536,8 +536,8 @@ export default function CareersPageContent() {
             </div>
 
             {/* Step 4 */}
-            <div className="relative z-10 flex flex-col items-center space-y-4">
-              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300">
+            <div className="relative z-10 flex flex-row md:flex-col items-center md:items-center space-x-4 md:space-x-0 space-y-0 md:space-y-4">
+              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300 shrink-0">
                 04
               </div>
               <span className="journey-step-label font-sans font-bold text-[10px] tracking-widest text-neutral-800 uppercase block">
@@ -546,8 +546,8 @@ export default function CareersPageContent() {
             </div>
 
             {/* Step 5 */}
-            <div className="relative z-10 flex flex-col items-center space-y-4">
-              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300">
+            <div className="relative z-10 flex flex-row md:flex-col items-center md:items-center space-x-4 md:space-x-0 space-y-0 md:space-y-4">
+              <div className="journey-step-num w-14 h-14 bg-brand-brown hover:bg-brand-gold text-white flex items-center justify-center font-serif text-lg font-bold rounded-sm shadow-md transition duration-300 shrink-0">
                 05
               </div>
               <span className="journey-step-label font-sans font-bold text-[10px] tracking-widest text-neutral-800 uppercase block">
