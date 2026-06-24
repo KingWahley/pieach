@@ -279,15 +279,15 @@ export default function ProjectsPage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:divide-x md:divide-neutral-200">
             <div className="stat-col flex flex-col items-center">
-              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2" data-target="100">0+</span>
+              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2 tabular-nums" data-target="100">0+</span>
               <span className="font-sans text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">PROJECTS COMPLETED</span>
             </div>
             <div className="stat-col flex flex-col items-center">
-              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2" data-target="20">0+</span>
+              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2 tabular-nums" data-target="20">0+</span>
               <span className="font-sans text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">AWARDS WON</span>
             </div>
             <div className="stat-col flex flex-col items-center">
-              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2" data-target="250">0+</span>
+              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2 tabular-nums" data-target="250">0+</span>
               <span className="font-sans text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">HAPPY CLIENTS</span>
             </div>
           </div>

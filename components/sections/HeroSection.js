@@ -54,6 +54,14 @@ export default function HeroSection() {
       const ringX = gsap.quickTo(cursorRingRef.current, "x", { duration: 0.15, ease: "power3" });
       const ringY = gsap.quickTo(cursorRingRef.current, "y", { duration: 0.15, ease: "power3" });
 
+      // Cache bounding rect of the hero container to avoid layout thrashing in mousemove listener
+      let containerRect = null;
+      const updateContainerRect = () => {
+        if (containerRef.current) {
+          containerRect = containerRef.current.getBoundingClientRect();
+        }
+      };
+
       // Mousemove logic: custom cursors, background parallax, and x-ray mask variables
       const handleMouseMove = (e) => {
         const xVal = e.clientX;
@@ -65,9 +73,11 @@ export default function HeroSection() {
         ringY(yVal);
 
         if (containerRef.current && revealRef.current) {
-          const rect = containerRef.current.getBoundingClientRect();
-          const relativeX = xVal - rect.left;
-          const relativeY = yVal - rect.top;
+          if (!containerRect) {
+            updateContainerRect();
+          }
+          const relativeX = xVal - (containerRect?.left || 0);
+          const relativeY = yVal - (containerRect?.top || 0);
 
           // Set custom CSS variables for radial mask alignment
           gsap.to(revealRef.current, {
@@ -98,6 +108,7 @@ export default function HeroSection() {
 
       // Custom Cursor Enter / Leave dynamics
       const handleMouseEnter = () => {
+        updateContainerRect();
         gsap.to([cursorDotRef.current, cursorRingRef.current], { opacity: 1, duration: 0.3 });
       };
 
@@ -122,6 +133,7 @@ export default function HeroSection() {
 
       // Register listeners
       window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('resize', updateContainerRect);
       containerRef.current?.addEventListener('mouseenter', handleMouseEnter);
       containerRef.current?.addEventListener('mouseleave', handleMouseLeave);
 
@@ -171,6 +183,20 @@ export default function HeroSection() {
         el.addEventListener('mouseenter', handleInteractableEnter);
         el.addEventListener('mouseleave', handleInteractableLeave);
       });
+
+      // Cleanup listeners inside context to avoid leaks
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('resize', updateContainerRect);
+        containerRef.current?.removeEventListener('mouseenter', handleMouseEnter);
+        containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
+        btn?.removeEventListener('mousemove', handleBtnMouseMove);
+        btn?.removeEventListener('mouseleave', handleBtnMouseLeave);
+        interactables?.forEach(el => {
+          el.removeEventListener('mouseenter', handleInteractableEnter);
+          el.removeEventListener('mouseleave', handleInteractableLeave);
+        });
+      };
     }, containerRef);
 
     // Context clean-up prevents double trigger issues in React strict mode

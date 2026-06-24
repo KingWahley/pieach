@@ -126,7 +126,7 @@ export default function EcologicalSection() {
               <div className="eco-reveal-el grid grid-cols-2 gap-4 sm:gap-6 pt-4">
                 <div className="bg-brand-light-gray p-6 rounded-sm text-center border border-neutral-100">
                   <span 
-                    className="eco-stat-num font-sans font-black text-2xl sm:text-3xl text-neutral-950 leading-none tracking-tight block"
+                    className="eco-stat-num font-sans font-black text-2xl sm:text-3xl text-neutral-950 leading-none tracking-tight block tabular-nums"
                     data-target="80"
                     data-suffix="%"
                   >
@@ -139,7 +139,7 @@ export default function EcologicalSection() {
 
                 <div className="bg-brand-light-gray p-6 rounded-sm text-center border border-neutral-100">
                   <span 
-                    className="eco-stat-num font-sans font-black text-2xl sm:text-3xl text-neutral-950 leading-none tracking-tight block"
+                    className="eco-stat-num font-sans font-black text-2xl sm:text-3xl text-neutral-950 leading-none tracking-tight block tabular-nums"
                     data-target="45"
                     data-suffix="%"
                   >

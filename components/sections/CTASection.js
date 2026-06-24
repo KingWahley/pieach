@@ -62,7 +62,7 @@ export default function CTASection() {
       {/* Background Image with vertical padding for parallax travel */}
       <div
         ref={bgRef}
-        className="absolute inset-x-0 -top-[12%] -bottom-[12%] z-0 bg-cover bg-center opacity-40 scale-110"
+        className="absolute inset-x-0 -top-[12%] -bottom-[12%] z-0 bg-cover bg-center opacity-40 scale-110 will-change-transform"
         style={{ backgroundImage: "url('/assets/cta.png')" }}
       />
 
