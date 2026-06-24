@@ -221,7 +221,7 @@ export default function HeroSection() {
             We design spaces that tell your story, transforming ideas into striking architectural experiences. From concept to landmark, we push boundaries to create spaces that inspire and endure.
           </p>
           <a ref={btnRef} href="/projects" className={styles.btn}>
-            Contact Us
+            View Projects
           </a>
         </div>
 

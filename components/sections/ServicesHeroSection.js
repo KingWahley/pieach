@@ -81,17 +81,17 @@ export default function ServicesHeroSection() {
           {/* Buttons */}
           <div className="services-hero-el flex flex-wrap items-center gap-4">
             <Link
-              href="/contact"
+              href="/book-appointment"
               className="inline-flex items-center justify-center bg-brand-gold text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold-hover hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              Book Call
+              Book Appointment
             </Link>
-            <a
-              href="#services"
+            <Link
+              href="/projects"
               className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm hover:bg-white hover:text-brand-navy transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              Our Work
-            </a>
+              View Projects
+            </Link>
           </div>
         </div>
       </div>

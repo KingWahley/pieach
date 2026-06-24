@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -69,18 +70,18 @@ export default function CareersHeroSection() {
             Join a multidisciplinary team shaping the future of West Africa.
           </p>
           <div className="careers-hero-el flex flex-wrap items-center gap-4">
-            <a
-              href="#open-roles-section"
+            <Link
+              href="/book-appointment"
               className="inline-flex items-center justify-center bg-brand-gold text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold-hover hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              View Open Roles
-            </a>
-            <a
-              href="#philosophy-section"
+              Book Appointment
+            </Link>
+            <Link
+              href="/team"
               className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm hover:bg-white hover:text-brand-navy transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              Our Philosophy
-            </a>
+              View Team
+            </Link>
           </div>
         </div>
       </div>

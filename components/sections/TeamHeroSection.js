@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -73,9 +74,25 @@ export default function TeamHeroSection() {
           </h1>
 
           {/* Subtitle */}
-          <p className="team-hero-el font-sans text-neutral-300 text-sm sm:text-base max-w-xl leading-relaxed font-light">
+          <p className="team-hero-el font-sans text-neutral-300 text-sm sm:text-base max-w-xl leading-relaxed font-light mb-8">
             A multi-disciplinary team of architects, designers, planners, and project specialists shaping meaningful spaces across Africa.
           </p>
+
+          {/* Action Buttons */}
+          <div className="team-hero-el flex flex-wrap items-center gap-4">
+            <Link
+              href="/careers"
+              className="inline-flex items-center justify-center bg-brand-gold text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold-hover hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              Join Us
+            </Link>
+            <Link
+              href="/projects"
+              className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm hover:bg-white hover:text-brand-navy transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              View Projects
+            </Link>
+          </div>
         </div>
       </div>
 

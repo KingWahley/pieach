@@ -75,14 +75,8 @@ export default function ContactHeroSection() {
               href="/book-appointment"
               className="inline-flex items-center justify-center bg-brand-gold text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold-hover hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              BOOK AN APPOINTMENT
+              Book Appointment
             </Link>
-            <a
-              href="#inquiry-section"
-              className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm hover:bg-white hover:text-brand-navy transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
-            >
-              SEND AN INQUIRY
-            </a>
           </div>
         </div>
       </div>
