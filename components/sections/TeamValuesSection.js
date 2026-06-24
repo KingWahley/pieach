@@ -1,3 +1,14 @@
+"use client";
+
+import { useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 const DEFAULT_VALUES = [
   {
     title: "Craft",
@@ -56,17 +67,60 @@ const DEFAULT_VALUES = [
 ];
 
 export default function TeamValuesSection({ values, title = "Core Values" }) {
+  const containerRef = useRef(null);
   const valuesToRender = values || DEFAULT_VALUES;
 
+  useGSAP(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+
+    tl.to(".values-header-line", {
+      scaleX: 1,
+      duration: 0.8,
+      ease: "power2.out"
+    })
+    .fromTo(
+      ".values-header-title",
+      { opacity: 0, y: 25 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+      "-=0.6"
+    )
+    .fromTo(
+      ".value-card",
+      { opacity: 0, y: 35, scale: 0.97 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.1, ease: "power3.out" },
+      "-=0.4"
+    )
+    .fromTo(
+      ".value-icon-container",
+      { scale: 0 },
+      { scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.7)" },
+      "-=0.6"
+    );
+  }, { scope: containerRef });
+
   return (
-    <section className="bg-brand-brown text-white py-20 lg:py-24 border-t border-b border-white/5 overflow-hidden">
+    <section 
+      ref={containerRef}
+      className="bg-brand-brown text-white py-20 lg:py-24 border-t border-b border-white/5 overflow-hidden"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
         <div className="mb-12">
-          <h2 className="font-serif text-3xl text-brand-gold tracking-tight uppercase border-b border-white/10 pb-4 inline-block">
-            {title}
-          </h2>
+          <div className="relative pb-4 inline-block mb-4">
+            <h2 className="values-header-title font-serif text-3xl text-brand-gold tracking-tight uppercase">
+              {title}
+            </h2>
+            <div className="values-header-line absolute left-0 bottom-0 h-[1.5px] bg-brand-gold w-full origin-left scale-x-0" />
+          </div>
         </div>
 
         {/* Core Values grid */}
@@ -74,18 +128,18 @@ export default function TeamValuesSection({ values, title = "Core Values" }) {
           {valuesToRender.map((val, idx) => (
             <div 
               key={idx}
-              className="p-8 lg:p-12 border-r border-b border-white/10 hover:bg-white/[0.02] transition duration-300 min-h-[220px] flex flex-col justify-between"
+              className="value-card group p-8 lg:p-12 border-r border-b border-white/10 hover:bg-white/[0.04] transition duration-300 min-h-[220px] flex flex-col justify-between"
             >
               <div>
                 <div className="mb-6 flex items-center justify-between">
-                  <div className="p-2.5 bg-white/5 rounded-sm">
+                  <div className="value-icon-container p-2.5 bg-white/5 rounded-sm transition duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-brand-gold/10">
                     {val.icon}
                   </div>
-                  <span className="text-[10px] tracking-widest text-white/30 uppercase font-semibold">
+                  <span className="text-[10px] tracking-widest text-white/30 group-hover:text-white transition duration-300 uppercase font-semibold">
                     0{idx + 1}
                   </span>
                 </div>
-                <h3 className="font-sans font-black text-lg uppercase tracking-wider text-white mb-3 hover:text-brand-gold transition">
+                <h3 className="font-sans font-black text-lg uppercase tracking-wider text-white mb-3 group-hover:text-brand-gold group-hover:translate-x-1 transition duration-300">
                   {val.title}
                 </h3>
                 <p className="font-sans text-neutral-400 text-xs sm:text-sm leading-relaxed font-light">

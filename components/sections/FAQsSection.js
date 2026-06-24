@@ -1,6 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const FAQS = [
   {
@@ -35,30 +42,71 @@ const FAQS = [
 
 export default function FAQsSection() {
   const [openIndex, setOpenIndex] = useState(0);
+  const containerRef = useRef(null);
 
   const toggleFaq = (index) => {
     setOpenIndex(openIndex === index ? -1 : index);
   };
 
+  useGSAP(() => {
+    if (!containerRef.current) return;
+
+    // 1. FAQs Header entrance
+    gsap.fromTo(
+      ".faq-header-el",
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 85%",
+        }
+      }
+    );
+
+    // 2. FAQ rows staggered slide-up
+    gsap.fromTo(
+      ".faq-row-el",
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".faq-list-container",
+          start: "top 85%",
+        }
+      }
+    );
+  }, { scope: containerRef });
+
   return (
-    <section className="bg-white text-neutral-900 py-20 lg:py-24 overflow-hidden border-b border-neutral-100">
+    <section 
+      ref={containerRef}
+      className="bg-white text-neutral-900 py-20 lg:py-24 overflow-hidden border-b border-neutral-100"
+    >
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         
         {/* Large FAQ Header */}
         <div className="text-center mb-16">
-          <h2 className="font-sans font-black text-6xl sm:text-7xl lg:text-8xl text-neutral-800 tracking-tight leading-none uppercase">
+          <h2 className="faq-header-el font-sans font-black text-6xl sm:text-7xl lg:text-8xl text-neutral-800 tracking-tight leading-none uppercase">
             FAQs
           </h2>
         </div>
 
         {/* Accordions List */}
-        <div className="space-y-4 border-t border-neutral-200">
+        <div className="faq-list-container space-y-4 border-t border-neutral-200">
           {FAQS.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
               <div 
                 key={index}
-                className="border-b border-neutral-200/80 transition-all duration-300"
+                className="faq-row-el border-b border-neutral-200/80 transition-all duration-300"
               >
                 {/* Header/Question */}
                 <button

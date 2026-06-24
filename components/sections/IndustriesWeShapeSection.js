@@ -1,4 +1,14 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const SECTORS = [
   { name: "Residential", image: "/assets/sector_residential.png" },
@@ -8,15 +18,60 @@ const SECTORS = [
 ];
 
 export default function IndustriesWeShapeSection() {
+  const containerRef = useRef(null);
+
+  useGSAP(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+
+    // 1. Draw the header bottom line and fade/slide up the title
+    tl.to(".industries-header-line", {
+      scaleX: 1,
+      duration: 1,
+      ease: "power2.inOut"
+    })
+    .fromTo(
+      ".industries-header-title",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+      "-=0.8" // overlaps with line drawing
+    )
+    // 2. Stagger fade, slide, and scale up the sector cards
+    .fromTo(
+      ".sector-card",
+      { opacity: 0, y: 45, scale: 0.95 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "power3.out"
+      },
+      "-=0.4" // overlaps with header animation
+    );
+  }, { scope: containerRef });
+
   return (
-    <section className="bg-brand-light-gray text-neutral-900 py-20 lg:py-24 overflow-hidden">
+    <section 
+      ref={containerRef}
+      className="bg-brand-light-gray text-neutral-900 py-20 lg:py-24 overflow-hidden"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
-        <div className="mb-12 border-b border-neutral-300/40 pb-6">
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-neutral-950 tracking-tight leading-none">
+        <div className="relative mb-12 pb-6 overflow-hidden">
+          <h2 className="industries-header-title font-serif text-3xl sm:text-4xl lg:text-5xl text-neutral-950 tracking-tight leading-none">
             Industries We Shape
           </h2>
+          <div className="industries-header-line absolute bottom-0 left-0 right-0 h-[1px] bg-neutral-300/40 origin-left scale-x-0" />
         </div>
 
         {/* Sectors Grid */}
@@ -24,7 +79,7 @@ export default function IndustriesWeShapeSection() {
           {SECTORS.map((sector, index) => (
             <div
               key={index}
-              className="relative aspect-[3/4] rounded-sm overflow-hidden shadow-md group bg-neutral-900"
+              className="sector-card relative aspect-[3/4] rounded-sm overflow-hidden shadow-md group bg-neutral-900"
             >
               {/* Background Image with zoom on hover */}
               <div

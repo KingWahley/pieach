@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import CTASection from "@/components/sections/CTASection";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function BookAppointmentPage() {
   const [selectedService, setSelectedService] = useState("Architectural Consultation");
@@ -18,6 +25,8 @@ export default function BookAppointmentPage() {
     description: "",
   });
   const [submitted, setSubmitted] = useState(false);
+
+  const pageContainerRef = useRef(null);
 
   const timeSlots = ["09:00 AM", "11:30 AM", "02:00 PM", "04:00 PM"];
 
@@ -55,8 +64,47 @@ export default function BookAppointmentPage() {
     }, 6000);
   };
 
+  useGSAP(() => {
+    if (!pageContainerRef.current) return;
+
+    const tl = gsap.timeline();
+
+    // 1. Left Side: Background image zoom-out curtain effect
+    tl.fromTo(
+      ".appt-bg-img",
+      { scale: 1.12, opacity: 0 },
+      { scale: 1.0, opacity: 0.85, duration: 1.5, ease: "power2.out" }
+    )
+    // 2. Left Side: Text details glide in
+    .fromTo(
+      ".appt-left-tag",
+      { opacity: 0, y: -15 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+      "-=1.0"
+    )
+    .fromTo(
+      ".appt-left-title",
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" },
+      "-=0.8"
+    )
+    // 3. Right Side: Waterfall form fields staggers
+    .fromTo(
+      ".appt-right-header",
+      { opacity: 0, y: 25 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+      "-=0.6"
+    )
+    .fromTo(
+      ".appt-form-group",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: "power2.out" },
+      "-=0.4"
+    );
+  }, { scope: pageContainerRef });
+
   return (
-    <div className="bg-white text-neutral-900">
+    <div ref={pageContainerRef} className="bg-white text-neutral-900">
       
       {/* 50/50 Split Screen Section */}
       <div className="relative flex flex-col lg:flex-row min-h-screen mb-12 lg:mb-20">
@@ -65,21 +113,21 @@ export default function BookAppointmentPage() {
         <div className="lg:w-1/2 lg:h-screen lg:sticky lg:top-0 relative h-[400px] sm:h-[500px] bg-neutral-900 overflow-hidden flex flex-col justify-between p-8 sm:p-12 lg:p-16 lg:pt-32 z-10">
           {/* Background image with pool reflection */}
           <div 
-            className="absolute inset-0 bg-cover bg-center opacity-85 mix-blend-luminosity"
+            className="appt-bg-img absolute inset-0 bg-cover bg-center opacity-85 mix-blend-luminosity"
             style={{ backgroundImage: "url('/assets/templo_road.png')" }}
           />
           <div className="absolute inset-0 bg-neutral-950/20 z-0" />
 
           {/* Top tagline: PIEACH MANIFESTO */}
           <div className="relative z-10">
-            <span className="font-sans font-bold text-[10px] tracking-[0.3em] text-white/80 uppercase">
+            <span className="appt-left-tag font-sans font-bold text-[10px] tracking-[0.3em] text-white/80 uppercase block">
               PIEACH MANIFESTO
             </span>
           </div>
 
           {/* Center-left typography */}
           <div className="relative z-10 max-w-md mt-auto lg:mb-10">
-            <h2 className="font-serif text-white text-4xl sm:text-5xl lg:text-6xl font-light leading-[1.1] tracking-tight">
+            <h2 className="appt-left-title font-serif text-white text-4xl sm:text-5xl lg:text-6xl font-light leading-[1.1] tracking-tight">
               Designing<br />
               Spaces With<br />
               Purpose
@@ -92,7 +140,7 @@ export default function BookAppointmentPage() {
           <div className="max-w-xl w-full mx-auto space-y-10">
             
             {/* Title & Description */}
-            <div>
+            <div className="appt-right-header">
               <h1 className="font-serif text-3xl sm:text-4xl text-neutral-950 tracking-tight mb-3">
                 Book an Appointment
               </h1>
@@ -110,7 +158,7 @@ export default function BookAppointmentPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               
               {/* SELECT SERVICE */}
-              <div className="space-y-2">
+              <div className="appt-form-group space-y-2">
                 <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                   SELECT SERVICE
                 </label>
@@ -134,7 +182,7 @@ export default function BookAppointmentPage() {
               </div>
 
               {/* MEETING FORMAT */}
-              <div className="space-y-2">
+              <div className="appt-form-group space-y-2">
                 <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                   MEETING FORMAT
                 </label>
@@ -142,7 +190,7 @@ export default function BookAppointmentPage() {
                   <button
                     type="button"
                     onClick={() => setMeetingFormat("virtual")}
-                    className={`flex-1 pb-3 text-center text-[10px] font-bold uppercase tracking-widest transition duration-200
+                    className={`flex-1 pb-3 text-center text-[10px] font-bold uppercase tracking-widest transition duration-200 cursor-pointer
                       ${meetingFormat === "virtual" 
                         ? "border-b-2 border-brand-brown text-neutral-950 font-bold" 
                         : "text-neutral-400 hover:text-neutral-600"
@@ -154,7 +202,7 @@ export default function BookAppointmentPage() {
                   <button
                     type="button"
                     onClick={() => setMeetingFormat("physical")}
-                    className={`flex-1 pb-3 text-center text-[10px] font-bold uppercase tracking-widest transition duration-200
+                    className={`flex-1 pb-3 text-center text-[10px] font-bold uppercase tracking-widest transition duration-200 cursor-pointer
                       ${meetingFormat === "physical" 
                         ? "border-b-2 border-brand-brown text-neutral-950 font-bold" 
                         : "text-neutral-400 hover:text-neutral-600"
@@ -167,7 +215,7 @@ export default function BookAppointmentPage() {
               </div>
 
               {/* PROJECT CONTEXT */}
-              <div className="space-y-2">
+              <div className="appt-form-group space-y-2">
                 <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                   PROJECT CONTEXT
                 </label>
@@ -176,7 +224,7 @@ export default function BookAppointmentPage() {
                   <button
                     type="button"
                     onClick={() => setProjectContext("residential")}
-                    className={`flex flex-col items-center justify-center p-4 border rounded-sm transition duration-200 cursor-pointer
+                    className={`flex flex-col items-center justify-center p-4 border rounded-sm transition duration-300 hover:scale-105 active:scale-[0.98] cursor-pointer
                       ${projectContext === "residential"
                         ? "bg-brand-brown border-brand-brown text-brand-gold"
                         : "bg-[#fafafa]/80 border-neutral-200/70 text-neutral-500 hover:border-neutral-300"
@@ -193,7 +241,7 @@ export default function BookAppointmentPage() {
                   <button
                     type="button"
                     onClick={() => setProjectContext("commercial")}
-                    className={`flex flex-col items-center justify-center p-4 border rounded-sm transition duration-200 cursor-pointer
+                    className={`flex flex-col items-center justify-center p-4 border rounded-sm transition duration-300 hover:scale-105 active:scale-[0.98] cursor-pointer
                       ${projectContext === "commercial"
                         ? "bg-brand-brown border-brand-brown text-brand-gold"
                         : "bg-[#fafafa]/80 border-neutral-200/70 text-neutral-500 hover:border-neutral-300"
@@ -211,7 +259,7 @@ export default function BookAppointmentPage() {
                   <button
                     type="button"
                     onClick={() => setProjectContext("hospitality")}
-                    className={`flex flex-col items-center justify-center p-4 border rounded-sm transition duration-200 cursor-pointer
+                    className={`flex flex-col items-center justify-center p-4 border rounded-sm transition duration-300 hover:scale-105 active:scale-[0.98] cursor-pointer
                       ${projectContext === "hospitality"
                         ? "bg-brand-brown border-brand-brown text-brand-gold"
                         : "bg-[#fafafa]/80 border-neutral-200/70 text-neutral-500 hover:border-neutral-300"
@@ -227,7 +275,7 @@ export default function BookAppointmentPage() {
               </div>
 
               {/* SELECT DATE */}
-              <div className="space-y-2">
+              <div className="appt-form-group space-y-2">
                 <div className="flex justify-between items-end">
                   <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                     SELECT DATE
@@ -273,7 +321,7 @@ export default function BookAppointmentPage() {
               </div>
 
               {/* AVAILABLE SLOTS */}
-              <div className="space-y-2">
+              <div className="appt-form-group space-y-2">
                 <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                   AVAILABLE SLOTS
                 </label>
@@ -300,7 +348,7 @@ export default function BookAppointmentPage() {
               </div>
 
               {/* INPUT FIELDS */}
-              <div className="space-y-4 pt-4 border-t border-neutral-200/60">
+              <div className="appt-form-group space-y-4 pt-4 border-t border-neutral-200/60">
                 <div className="grid grid-cols-2 gap-4">
                   <input
                     type="text"
@@ -355,7 +403,7 @@ export default function BookAppointmentPage() {
               </div>
 
               {/* Submit Button */}
-              <div>
+              <div className="appt-form-group">
                 <button
                   type="submit"
                   className="w-full bg-brand-brown py-4 text-xs font-bold uppercase tracking-widest text-white hover:bg-brand-gold hover:text-brand-navy transition duration-300 shadow-md active:scale-[0.99] cursor-pointer"

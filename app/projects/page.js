@@ -1,15 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { PROJECTS } from "@/lib/constants";
+import ProjectsHeroSection from "@/components/sections/ProjectsHeroSection";
 import BlogSection from "@/components/sections/BlogSection";
 import PhilosophyQuoteSection from "@/components/sections/PhilosophyQuoteSection";
 import RegionalImpactSection from "@/components/sections/RegionalImpactSection";
 import CTASection from "@/components/sections/CTASection";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function ProjectsPage() {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [hasScrolledIn, setHasScrolledIn] = useState(false);
+
+  const introRef = useRef(null);
+  const gridRef = useRef(null);
+  const featuredRef = useRef(null);
+  const statsRef = useRef(null);
 
   const filterTabs = [
     { id: "all", label: "ALL" },
@@ -24,64 +38,137 @@ export default function ProjectsPage() {
     ? PROJECTS
     : PROJECTS.filter((p) => p.groups && p.groups.includes(activeFilter));
 
+  // 1. Introduction Section Animation
+  useGSAP(() => {
+    if (!introRef.current) return;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: introRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+    tl.fromTo(
+      ".intro-title",
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.8, ease: "power2.out" }
+    )
+    .fromTo(
+      ".intro-text",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" },
+      "-=0.5"
+    );
+  }, { scope: introRef });
+
+  // 2. Grid Tabs scroll-in trigger
+  useGSAP(() => {
+    if (!gridRef.current) return;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: gridRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none",
+        onEnter: () => setHasScrolledIn(true)
+      }
+    });
+    tl.fromTo(
+      ".grid-tab",
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: "power2.out" }
+    );
+  }, { scope: gridRef });
+
+  // 3. Grid Cards Entrance & Filter Transition animation
+  useGSAP(() => {
+    if (!hasScrolledIn || !gridRef.current) return;
+    gsap.fromTo(
+      ".grid-card",
+      { opacity: 0, y: 40, rotate: 0.8, scale: 0.98 },
+      { opacity: 1, y: 0, rotate: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: "power3.out" }
+    );
+  }, { dependencies: [hasScrolledIn, activeFilter], scope: gridRef });
+
+  // 4. Featured Section Animation
+  useGSAP(() => {
+    if (!featuredRef.current) return;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: featuredRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+    tl.fromTo(
+      ".featured-img-wrap",
+      { opacity: 0, scale: 1.15 },
+      { opacity: 0.85, scale: 1.02, duration: 1.2, ease: "power2.out" }
+    )
+    .fromTo(
+      ".featured-el",
+      { opacity: 0, x: 40 },
+      { opacity: 1, x: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" },
+      "-=0.8"
+    );
+  }, { scope: featuredRef });
+
+  // 5. Stats count-up animation
+  useGSAP(() => {
+    if (!statsRef.current) return;
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: statsRef.current,
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    });
+    tl.fromTo(
+      ".stat-col",
+      { opacity: 0, scale: 0.8 },
+      { opacity: 1, scale: 1, duration: 0.6, stagger: 0.12, ease: "back.out(1.4)" }
+    );
+
+    const statNumbers = statsRef.current.querySelectorAll(".stat-number");
+    statNumbers.forEach((el) => {
+      const targetVal = parseInt(el.getAttribute("data-target"), 10);
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: targetVal,
+        duration: 1.5,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: statsRef.current,
+          start: "top 85%"
+        },
+        onUpdate: () => {
+          el.innerText = `${Math.floor(obj.val)}+`;
+        }
+      });
+    });
+  }, { scope: statsRef });
+
   return (
     <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Banner Section */}
-      <section className="relative h-[60vh] min-h-[450px] flex items-center justify-start overflow-hidden bg-neutral-900">
-        {/* Background Image: wood-slat texture (service_mgmt.png) */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 ease-out scale-105"
-          style={{ backgroundImage: "url('/assets/projects/projectsHero.png')" }}
-        />
-        
-        {/* Gradients Overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/45 to-transparent" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950/70 via-transparent to-black/35" />
-
-        {/* Content */}
-        <div className="relative z-20 mx-auto max-w-[1600px] w-full px-5 sm:px-8 lg:px-12 pt-24">
-          <div className="max-w-4xl">
-            <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
-              Projects That Shape<br />Experiences
-            </h1>
-            <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light mb-8 max-w-xl">
-              Browse our portfolio of residential, architectural, and master planning designs that define modern West Africa.
-            </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center bg-brand-gold text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold-hover hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                Book Call
-              </Link>
-              <a
-                href="#projects-grid-section"
-                className="inline-flex items-center justify-center border border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm hover:bg-white hover:text-brand-navy transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                Our Work
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ProjectsHeroSection />
 
       {/* 2. Introduction Section */}
-      <section className="py-20 lg:py-24 border-b border-neutral-100 bg-white">
+      <section ref={introRef} className="py-20 lg:py-24 border-b border-neutral-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left Column: Our Work title */}
             <div className="lg:col-span-4">
-              <h2 className="font-serif text-3xl sm:text-4xl text-neutral-950 tracking-tight leading-none uppercase">
+              <h2 className="intro-title font-serif text-3xl sm:text-4xl text-neutral-950 tracking-tight leading-none uppercase">
                 Our Work
               </h2>
             </div>
             {/* Right Column: Paragraphs */}
             <div className="lg:col-span-8 space-y-6">
-              <p className="font-sans text-neutral-500 text-sm sm:text-base leading-relaxed font-light">
+              <p className="intro-text font-sans text-neutral-500 text-sm sm:text-base leading-relaxed font-light">
                 PIEACH Limited collaborates with visionaries, developers, and civic organizations to deliver high-performance physical structures. From luxury estates to mixed-use corporate high-rises, each project represents a rigorous synthesis of site context, structural compliance, and environmental responsibility.
               </p>
-              <p className="font-sans text-neutral-500 text-sm sm:text-base leading-relaxed font-light">
+              <p className="intro-text font-sans text-neutral-500 text-sm sm:text-base leading-relaxed font-light">
                 Our design methodology prioritizes spatial logic, daylighting optimization, and biophilic integration, creating timeless spaces that improve the daily life of their occupants.
               </p>
             </div>
@@ -90,7 +177,7 @@ export default function ProjectsPage() {
       </section>
 
       {/* 3. Projects Grid & Interactive Filters */}
-      <section id="projects-grid-section" className="py-20 lg:py-24 bg-white">
+      <section ref={gridRef} id="projects-grid-section" className="py-20 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           {/* Category Tabs Row */}
@@ -102,7 +189,7 @@ export default function ProjectsPage() {
                   key={tab.id}
                   onClick={() => setActiveFilter(tab.id)}
                   type="button"
-                  className={`px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest transition duration-200 border rounded-sm cursor-pointer
+                  className={`grid-tab px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest transition duration-200 border rounded-sm cursor-pointer
                     ${isActive 
                       ? "bg-brand-gold border-brand-gold text-brand-navy font-bold shadow-sm" 
                       : "bg-white border-neutral-200 text-neutral-500 hover:border-brand-gold hover:text-brand-gold"
@@ -121,7 +208,7 @@ export default function ProjectsPage() {
               <Link 
                 key={project.id}
                 href={`/projects/${project.slug}`}
-                className="group flex flex-col justify-between border border-neutral-100/50 bg-[#fafafa]/40 rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300 cursor-pointer"
+                className="grid-card group flex flex-col justify-between border border-neutral-100/50 bg-[#fafafa]/40 rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300 cursor-pointer"
               >
                 {/* Square Image container with hover zoom */}
                 <div className="relative aspect-square overflow-hidden bg-neutral-100">
@@ -149,14 +236,14 @@ export default function ProjectsPage() {
       </section>
 
       {/* 4. Featured clay-brown split Section */}
-      <section className="bg-[#2A1B18] text-white overflow-hidden">
+      <section ref={featuredRef} className="bg-[#2A1B18] text-white overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             {/* Left Column: Full-Bleed Image (Grayscale Facade) */}
             <div className="lg:col-span-6 relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-800 shadow-2xl border border-white/5">
               <div 
-                className="absolute inset-0 bg-cover bg-center opacity-85 mix-blend-luminosity hover:opacity-100 transition duration-500 scale-102"
+                className="featured-img-wrap absolute inset-0 bg-cover bg-center opacity-85 mix-blend-luminosity hover:opacity-100 transition duration-500 scale-102"
                 style={{ backgroundImage: "url('/assets/our work/Landmark EcoFriendlyOffice.png')" }}
               />
               <div className="absolute inset-0 bg-brand-brown/10 pointer-events-none" />
@@ -164,16 +251,16 @@ export default function ProjectsPage() {
 
             {/* Right Column: Featured details */}
             <div className="lg:col-span-6 space-y-6">
-              <span className="font-sans font-bold text-xs uppercase tracking-[0.25em] text-brand-gold mb-2 block">
+              <span className="featured-el font-sans font-bold text-xs uppercase tracking-[0.25em] text-brand-gold mb-2 block">
                 FEATURED PROJECT
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight uppercase">
+              <h2 className="featured-el font-serif text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-tight uppercase">
                 Landmark EcoFriendlyOffice
               </h2>
-              <p className="font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light">
+              <p className="featured-el font-sans text-neutral-300 text-sm sm:text-base leading-relaxed font-light">
                 Our design for the Landmark EcoFriendlyOffice in Victoria Island integrates a passive cooling facade with architectural curves that optimize natural shading and daylight control. The structure represents our dedication to low-carbon commercial engineering and modern West African corporate identity.
               </p>
-              <div className="pt-4">
+              <div className="featured-el pt-4">
                 <Link
                   href="/projects/landmark-ecofriendlyoffice"
                   className="inline-flex items-center justify-center border-2 border-white rounded-sm text-xs font-bold uppercase tracking-widest text-white px-8 py-4 transition duration-300 hover:bg-brand-gold hover:border-brand-gold hover:text-brand-navy shadow-md active:scale-95"
@@ -188,19 +275,19 @@ export default function ProjectsPage() {
       </section>
 
       {/* 5. Metrics / Stats block */}
-      <section className="py-20 bg-[#fafafa] border-t border-b border-neutral-100">
+      <section ref={statsRef} className="py-20 bg-[#fafafa] border-t border-b border-neutral-100">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:divide-x md:divide-neutral-200">
-            <div className="flex flex-col items-center">
-              <span className="font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2">100+</span>
+            <div className="stat-col flex flex-col items-center">
+              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2" data-target="100">0+</span>
               <span className="font-sans text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">PROJECTS COMPLETED</span>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2">20+</span>
+            <div className="stat-col flex flex-col items-center">
+              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2" data-target="20">0+</span>
               <span className="font-sans text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">AWARDS WON</span>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2">250+</span>
+            <div className="stat-col flex flex-col items-center">
+              <span className="stat-number font-serif font-bold text-4xl sm:text-5xl text-neutral-950 mb-2" data-target="250">0+</span>
               <span className="font-sans text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">HAPPY CLIENTS</span>
             </div>
           </div>

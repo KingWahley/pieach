@@ -1,6 +1,7 @@
 import { PROJECTS } from "@/lib/constants";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroSection";
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
 import CTASection from "@/components/sections/CTASection";
 
@@ -49,34 +50,12 @@ export default async function ProjectDetailsPage({ params }) {
     <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Banner Section */}
-      <section className="relative h-[60vh] min-h-[450px] flex items-center justify-start overflow-hidden bg-neutral-900">
-        {/* Background image with overlay */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 ease-out scale-105"
-          style={{ backgroundImage: `url('${project.image}')` }}
-        />
-        
-        {/* Gradients Overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/45 to-transparent" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-950/70 via-transparent to-black/35" />
-
-        <div className="relative z-20 mx-auto max-w-[1600px] w-full px-5 sm:px-8 lg:px-12 pt-24">
-          <div className="max-w-4xl">
-            <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
-              {project.title}
-            </h1>
-            <div className="flex items-center gap-3">
-              <span className="font-sans text-[10px] sm:text-xs font-bold tracking-[0.2em] text-brand-gold uppercase">
-                {project.category}
-              </span>
-              <span className="w-8 h-[1px] bg-brand-gold" />
-              <span className="font-sans text-[10px] sm:text-xs font-bold tracking-[0.2em] text-neutral-300 uppercase">
-                {project.location}
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ProjectDetailsHeroSection 
+        title={project.title}
+        category={project.category}
+        location={project.location}
+        image={project.image}
+      />
 
       {/* 2. Project Overview Section */}
       <section className="bg-brand-brown text-white py-20 lg:py-24">

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import CareerDetailsHeroSection from "@/components/sections/CareerDetailsHeroSection";
 import ApplicationForm from "@/components/sections/ApplicationForm";
 import CTASection from "@/components/sections/CTASection";
 
@@ -235,36 +236,12 @@ export default async function CareerDetailsPage({ params }) {
     <div className="bg-white text-neutral-900">
       
       {/* 1. Hero Detail Banner (Sand-Gold/Taupe Background) */}
-      <section className="relative bg-[#B5A898] text-white h-[60vh] min-h-[450px] flex items-center justify-start overflow-hidden border-b border-neutral-200">
-        <div className="mx-auto max-w-[1600px] w-full px-5 sm:px-8 lg:px-12 pt-24">
-          
-          {/* Top row: Title/Info and Apply Button */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-            <div className="space-y-3 max-w-4xl">
-              <h1 className="font-sans font-black text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tighter leading-[1.05] text-white mb-6">
-                {job.title}
-              </h1>
-              <span className="block font-sans text-xs font-bold tracking-[0.25em] text-white/90 uppercase">
-                {job.location.toUpperCase()} — {job.type.toUpperCase()}
-              </span>
-              <p className="font-sans text-white/80 text-sm sm:text-base leading-relaxed font-light pt-2">
-                {job.requirements}
-              </p>
-            </div>
-
-            {/* Apply Button */}
-            <div className="flex-shrink-0 pt-2">
-              <a
-                href="#application-form"
-                className="inline-flex items-center justify-center bg-white text-neutral-900 text-xs font-bold uppercase tracking-widest px-8 py-3.5 rounded-sm shadow-md hover:bg-brand-gold hover:text-white transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-              >
-                APPLY
-              </a>
-            </div>
-          </div>
-
-        </div>
-      </section>
+      <CareerDetailsHeroSection 
+        title={job.title}
+        location={job.location}
+        type={job.type}
+        requirements={job.requirements}
+      />
 
       {/* Role Description (Outside Hero to fit 45vh height) */}
       <section className="bg-[#FAF8F5] py-12 border-b border-neutral-200 text-neutral-900">

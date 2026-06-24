@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const HIGHLIGHT_SLIDES = [
   {
@@ -26,6 +33,8 @@ const HIGHLIGHT_SLIDES = [
 
 export default function AboutSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const containerRef = useRef(null);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % HIGHLIGHT_SLIDES.length);
@@ -35,15 +44,70 @@ export default function AboutSection() {
     setCurrentSlide((prev) => (prev - 1 + HIGHLIGHT_SLIDES.length) % HIGHLIGHT_SLIDES.length);
   };
 
+  useEffect(() => {
+    if (isHovered) return;
+
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isHovered]);
+
+  useGSAP(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 80%",
+      }
+    });
+
+    // 1. Line expansion and title fade-in
+    tl.fromTo(
+      ".about-title-line",
+      { scaleX: 0, transformOrigin: "left" },
+      { scaleX: 1, duration: 1.2, ease: "power3.inOut" }
+    )
+    .fromTo(
+      ".about-title-text",
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+      "-=0.7"
+    )
+    // 2. Paragraph fade-in-up
+    .fromTo(
+      ".about-description",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+      "-=0.5"
+    )
+    // 3. Read More card stagger reveal
+    .fromTo(
+      ".about-card",
+      { opacity: 0, y: 30, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" },
+      "-=0.5"
+    );
+  }, { scope: containerRef });
+
   const activeHighlight = HIGHLIGHT_SLIDES[currentSlide];
 
   return (
-    <section className="bg-brand-light-gray py-20 lg:py-28 text-neutral-900 overflow-hidden">
+    <section 
+      ref={containerRef}
+      className="bg-brand-light-gray py-20 lg:py-28 text-neutral-900 overflow-hidden"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           
           {/* Left Column: Highlights (Carousel) */}
-          <div className="lg:col-span-5 flex flex-col justify-between min-h-[420px] lg:border-r lg:border-neutral-300/60 pr-0 lg:pr-12">
+          <div 
+            className="lg:col-span-5 flex flex-col justify-between min-h-[420px] lg:border-r lg:border-neutral-300/60 pr-0 lg:pr-12"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
             <div>
               {/* Header Title with Horizontal line */}
               <div className="flex items-center justify-between pb-4 border-b border-neutral-300 mb-8">
@@ -54,9 +118,9 @@ export default function AboutSection() {
                   {activeHighlight.index}
                 </span>
               </div>
-
+              
               {/* Large Highlight Data */}
-              <div className="transition-all duration-500 transform translate-y-0 opacity-100 space-y-4">
+              <div key={currentSlide} className="animate-fade-in-up space-y-4">
                 <span className="font-sans font-black text-7xl sm:text-8xl lg:text-8xl text-neutral-950 block leading-none tracking-tighter">
                   {activeHighlight.number}
                 </span>
@@ -68,7 +132,7 @@ export default function AboutSection() {
                 </p>
               </div>
             </div>
-
+ 
             {/* Slider Controls (Square shape with rounded corners bg-neutral-200) */}
             <div className="flex items-center space-x-3 mt-10 lg:mt-0">
               <button
@@ -91,24 +155,24 @@ export default function AboutSection() {
               </button>
             </div>
           </div>
-
+ 
           {/* Right Column: About Us */}
           <div className="lg:col-span-7 flex flex-col justify-between min-h-[420px]">
             <div>
               {/* Header Title with Horizontal line */}
-              <div className="pb-4 border-b border-neutral-300 mb-8">
-                <h2 className="font-sans font-bold text-sm tracking-[0.15em] text-neutral-900 uppercase">
+              <div className="pb-4 border-b border-neutral-300 mb-8 about-title-line">
+                <h2 className="font-sans font-bold text-sm tracking-[0.15em] text-neutral-900 uppercase about-title-text">
                   ABOUT US
                 </h2>
               </div>
               
-              <p className="font-sans text-neutral-700 text-sm sm:text-base leading-relaxed font-normal max-w-3xl">
+              <p className="font-sans text-neutral-700 text-sm sm:text-base leading-relaxed font-normal max-w-3xl about-description">
                 Established in 1997, PIEACH Limited is a multidisciplinary studio of visionary architects, master planners, and interior designers. With an industry-leading reputation across West Africa, our award-winning firm specializes in crafting bespoke, high-performance environments. From monumental civic landmarks to intimate luxury residences, we blend structural precision with timeless aesthetic mastery to redefine the spatial experience.
               </p>
             </div>
-
+ 
             {/* Read More Card / Link styled exactly like mockup */}
-            <div className="pt-10">
+            <div className="pt-10 about-card">
               <Link href="/about" className="group inline-block space-y-3">
                 {/* Stepped outline box with diagonal arrow */}
                 <div className="w-44 h-24 border-t border-l border-b border-neutral-300 flex items-center justify-center transition duration-300 group-hover:border-[#c5a880] group-hover:bg-[#c5a880]/5">
@@ -126,7 +190,7 @@ export default function AboutSection() {
               </Link>
             </div>
           </div>
-
+ 
         </div>
       </div>
     </section>

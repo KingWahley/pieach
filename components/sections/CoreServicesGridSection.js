@@ -1,3 +1,14 @@
+"use client";
+
+import { useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 const CORE_SERVICES = [
   {
     title: "STRATEGIC PLANNING",
@@ -32,8 +43,30 @@ const CORE_SERVICES = [
 ];
 
 export default function CoreServicesGridSection() {
+  const containerRef = useRef(null);
+
+  useGSAP(() => {
+    if (!containerRef.current) return;
+
+    gsap.fromTo(
+      ".core-service-card",
+      { opacity: 0, y: 45 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 80%",
+        }
+      }
+    );
+  }, { scope: containerRef });
+
   const renderIcon = (index) => {
-    const baseClass = "w-4 h-4 text-brand-gold";
+    const baseClass = "w-4 h-4 text-brand-gold transform transition-transform duration-500 ease-out group-hover:scale-110 group-hover:rotate-6";
     const iconIndex = index % 3;
     
     if (iconIndex === 0) {
@@ -63,7 +96,11 @@ export default function CoreServicesGridSection() {
   };
 
   return (
-    <section id="services" className="bg-white text-neutral-900 py-20 lg:py-28 overflow-hidden">
+    <section 
+      ref={containerRef}
+      id="services" 
+      className="bg-white text-neutral-900 py-20 lg:py-28 overflow-hidden"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Grid Container */}
@@ -71,12 +108,12 @@ export default function CoreServicesGridSection() {
           {CORE_SERVICES.map((service, index) => (
             <div 
               key={index} 
-              className="flex flex-col group transition-all duration-300"
+              className="core-service-card flex flex-col group transition-all duration-300 cursor-pointer"
             >
               {/* Image Container with Zoom hover (No rounded corners, no shadows) */}
               <div className="relative aspect-[3/2] overflow-hidden bg-neutral-100 rounded-none">
                 <div
-                  className="absolute inset-0 bg-cover bg-center zoom-effect"
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
                   style={{ backgroundImage: `url('${service.image}')` }}
                 />
               </div>
@@ -88,7 +125,7 @@ export default function CoreServicesGridSection() {
                 </span>
                 
                 {/* Description */}
-                <p className="font-sans text-neutral-600 text-sm leading-relaxed font-light mt-3">
+                <p className="font-sans text-neutral-600 text-sm leading-relaxed font-light mt-3 transition-colors duration-350 group-hover:text-neutral-950">
                   {service.description}
                 </p>
               </div>
