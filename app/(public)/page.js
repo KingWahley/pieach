@@ -13,13 +13,6 @@ export const revalidate = 60; // Revalidate every minute
 export default async function Home() {
   const supabase = createServerClient();
 
-  // Fetch published projects
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('*')
-    .neq('status', 'Draft')
-    .limit(7);
-
   // Fetch published blog posts
   const { data: posts } = await supabase
     .from('blog_posts')
@@ -33,7 +26,7 @@ export default async function Home() {
       <HeroSection />
       <AboutSection />
       <ServicesSection />
-      <ProjectsSection projects={projects || []} />
+      <ProjectsSection />
       <ClientsSection />
       <BlogSection posts={posts || []} />
       <CTASection />
