@@ -92,7 +92,7 @@ const PHILOSOPHY_ITEMS = [
   },
 ];
 
-export default function CareersPageContent() {
+export default function CareersPageContent({ vacancies = [] }) {
   const spiritRef = useRef(null);
   const philosophyRef = useRef(null);
   const elevateRef = useRef(null);
@@ -100,6 +100,15 @@ export default function CareersPageContent() {
   const journeyRef = useRef(null);
   const lifeRef = useRef(null);
   const quotesRef = useRef(null);
+
+  const activeVacancies = vacancies.length > 0
+    ? vacancies.map((v) => ({
+        slug: v.id,
+        title: v.title,
+        type: `${v.location.toUpperCase()} — ${v.type.toUpperCase()}`,
+        description: v.description,
+      }))
+    : CAREERS_LIST;
 
   // 1. Studio Spirit Section (Converging slide)
   useGSAP(() => {
@@ -444,7 +453,7 @@ export default function CareersPageContent() {
               Open Roles
             </h2>
             <span className="roles-count font-sans text-[10px] sm:text-xs font-bold tracking-[0.2em] text-neutral-400 uppercase">
-              6 AVAILABLE
+              {activeVacancies.length} AVAILABLE
             </span>
           </div>
 
@@ -453,7 +462,7 @@ export default function CareersPageContent() {
             {/* Top Border Line */}
             <div className="roles-line absolute top-0 left-0 right-0 h-[1px] bg-neutral-200 origin-left scale-x-0" />
             
-            {CAREERS_LIST.map((job) => (
+            {activeVacancies.map((job) => (
               <div 
                 key={job.title}
                 className="relative group"

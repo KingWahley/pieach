@@ -1,8 +1,5 @@
 import { Outfit, Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import SmoothScroll from "@/components/ui/SmoothScroll";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -42,12 +39,7 @@ export default function RootLayout({ children }) {
       className={`${outfit.variable} ${cormorant.variable} ${plusJakarta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-[#111111] selection:bg-brand-gold selection:text-brand-navy">
-        <SmoothScroll />
-        <Navbar />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

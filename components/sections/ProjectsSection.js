@@ -1,3 +1,4 @@
+// components/sections/ProjectsSection.js
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -13,8 +14,7 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Replace with your project data
-const images = [
+const DEFAULT_IMAGES = [
   {
     src: '/assets/projects/uba_ghana_head_office.jpg',
     alt: 'uba structure',
@@ -103,7 +103,9 @@ function MobileProjectsShowcase({ images }) {
     setActiveIndex(index);
   };
 
-  const getProjectLink = (title) => {
+  const getProjectLink = (img) => {
+    if (img.slug) return `/projects/${img.slug}`;
+    const title = img.title || '';
     const lower = title.toLowerCase();
     if (lower.includes("abeokuta")) return "/projects/abeokuta-shopping-center";
     if (lower.includes("falomo")) return "/projects/falomo-shopping-centre";
@@ -131,7 +133,7 @@ function MobileProjectsShowcase({ images }) {
         className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none pb-4 scroll-smooth w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         {images.map((img, idx) => {
-          const href = getProjectLink(img.title);
+          const href = getProjectLink(img);
           return (
             <Link
               key={idx}
@@ -178,7 +180,17 @@ function MobileProjectsShowcase({ images }) {
   );
 }
 
-export default function ProjectsSection() {
+export default function ProjectsSection({ projects = [] }) {
+  const displayImages = projects.length > 0
+    ? projects.map(p => ({
+        src: p.image,
+        alt: p.title,
+        title: p.title,
+        description: p.location,
+        slug: p.slug
+      })).slice(0, 7)
+    : DEFAULT_IMAGES;
+
   return (
     <section id="projects" className="bg-[#090d12] text-white">
       <div className="mx-auto flex min-h-[55vh] w-full max-w-7xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 lg:px-12">
@@ -199,14 +211,14 @@ export default function ProjectsSection() {
         </div>
       </div>
 
-      {/* Desktop version - unchanged */}
+      {/* Desktop version */}
       <div className="hidden md:block">
-        <ZoomParallax images={images} />
+        <ZoomParallax images={displayImages} />
       </div>
 
-      {/* Mobile version - custom touch-snap slider */}
+      {/* Mobile version */}
       <div className="block md:hidden">
-        <MobileProjectsShowcase images={images} />
+        <MobileProjectsShowcase images={displayImages} />
       </div>
     </section>
   );

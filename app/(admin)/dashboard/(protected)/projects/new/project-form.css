@@ -1,0 +1,228 @@
+.form-drawer {
+  margin-top: 18px;
+  background: var(--white);
+  border: 1px solid var(--stone-dark);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 16px;
+}
+
+@media (max-width: 1100px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.full {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--burgundy);
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--stone-dark);
+  border-radius: 6px;
+  padding: 10px 11px;
+  font-family: Verdana, sans-serif;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--gold);
+}
+
+.form-field textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.custom-field {
+  border: 1px dashed var(--stone-dark);
+  background: #FCFAF6;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 34px 220px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  transition: all 0.2s ease;
+}
+
+.custom-field.dragging {
+  opacity: 0.55;
+  border-color: var(--gold);
+  background: var(--gold-light);
+  transform: scale(0.99);
+}
+
+.custom-field.drag-over {
+  border-color: var(--burgundy);
+  background: var(--stone);
+}
+
+@media (max-width: 1100px) {
+  .custom-field {
+    grid-template-columns: 1fr;
+  }
+}
+
+.drag-handle {
+  width: 28px;
+  height: 38px;
+  border: 1px solid var(--stone-dark);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--ink-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  font-size: 16px;
+  line-height: 1;
+  user-select: none;
+}
+
+@media (max-width: 1100px) {
+  .drag-handle {
+    width: 100%;
+    height: 28px;
+  }
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.custom-field textarea.field-body {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.add-field-row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.add-field-btn {
+  background: var(--gold-light);
+  color: var(--burgundy);
+  border: 1px solid var(--gold);
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  font-family: Verdana, sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.15s;
+}
+
+.add-field-btn:hover {
+  background: var(--gold);
+}
+
+.gallery-upload {
+  border: 1px dashed var(--gold-dark);
+  background: var(--gold-light);
+  border-radius: 6px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--burgundy);
+  font-size: 11px;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gallery-upload:hover, .gallery-upload.drag-active {
+  background: var(--gold);
+  border-color: var(--burgundy);
+}
+
+.gallery-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.gallery-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--stone-dark);
+}
+
+.gallery-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--red);
+  font-size: 14px;
+  line-height: 1;
+  border: 1px solid var(--stone);
+}
+
+.gallery-preview-remove:hover {
+  background: var(--red);
+  color: white;
+}
+
+.form-actions {
+  padding: 14px 16px;
+  border-top: 1px solid var(--stone);
+  background: var(--cream);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
