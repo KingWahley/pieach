@@ -30,6 +30,9 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
     status: 'active',
     displayOrder: '',
     ...initialData,
+    bio: initialData?.bio 
+      ? (Array.isArray(initialData.bio) ? initialData.bio.join('\n\n') : String(initialData.bio)) 
+      : '',
     qualifications: initialData?.qualifications 
       ? (Array.isArray(initialData.qualifications) 
           ? initialData.qualifications.map(q => typeof q === 'object' && q ? (q.title || '') : String(q)) 
@@ -48,6 +51,9 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
       setFormData(prev => ({ 
         ...prev, 
         ...initialData,
+        bio: initialData.bio 
+          ? (Array.isArray(initialData.bio) ? initialData.bio.join('\n\n') : String(initialData.bio)) 
+          : '',
         qualifications: initialData.qualifications 
           ? (Array.isArray(initialData.qualifications) 
               ? initialData.qualifications.map(q => typeof q === 'object' && q ? (q.title || '') : String(q)) 
@@ -60,8 +66,8 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
   useEffect(() => {
     if (drawerRef.current) {
       gsap.fromTo(drawerRef.current, 
-        { y: 20, autoAlpha: 0 }, 
-        { y: 0, autoAlpha: 1, duration: 0.4, ease: 'power2.out' }
+         { y: 20, autoAlpha: 0 }, 
+         { y: 0, autoAlpha: 1, duration: 0.4, ease: 'power2.out' }
       );
     }
   }, []);
@@ -99,7 +105,12 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
     const newErrors = {};
     if (!formData.name?.trim()) newErrors.name = true;
     if (!formData.role?.trim()) newErrors.role = true;
-    if (!formData.bio?.trim()) newErrors.bio = true;
+    
+    const bioText = Array.isArray(formData.bio) 
+      ? formData.bio.join('\n') 
+      : (formData.bio || '');
+    if (!bioText.trim()) newErrors.bio = true;
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -146,6 +157,23 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
     }, 1000);
   };
 
+  const handlePreview = () => {
+    const previewTeamData = {
+      ...formData,
+      bio: typeof formData.bio === 'string'
+        ? formData.bio.split(/\r?\n/).map(p => p.trim()).filter(Boolean)
+        : (Array.isArray(formData.bio) ? formData.bio : []),
+      qualifications: Array.isArray(formData.qualifications)
+        ? formData.qualifications
+            .filter(q => typeof q === 'string' && q.trim())
+            .map(q => ({ title: q.trim().toUpperCase(), detail: '' }))
+        : []
+    };
+
+    localStorage.setItem('pieach-team-preview', JSON.stringify(previewTeamData));
+    window.open('/team/preview', '_blank');
+  };
+
   return (
     <div className="form-card" ref={drawerRef} style={{ opacity: 0, visibility: 'hidden' }}>
       <div className="card-header">
@@ -170,14 +198,8 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
       <TeamFormActions 
         onSaveDraft={() => handleSave(true)} 
         onSavePublish={() => setIsPublishConfirmOpen(true)} 
-        onPreview={() => setIsPreviewOpen(true)}
+        onPreview={handlePreview}
         isSaving={isSaving}
-      />
-
-      <TeamMemberPreview 
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        member={formData}
       />
 
       <ConfirmationModal 

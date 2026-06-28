@@ -26,15 +26,9 @@ export default function BlogPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
   const [postToPublish, setPostToPublish] = useState(null);
   const [postToPreview, setPostToPreview] = useState(null);
-
-  const handleSyncData = () => {
-    localStorage.removeItem('pieach_cms_blog');
-    window.location.reload();
-  };
 
   // Reset page when filters change
   useEffect(() => {
@@ -108,13 +102,6 @@ export default function BlogPage() {
         </div>
 
         <div className="flex gap-4">
-          <button 
-            onClick={() => setIsSyncModalOpen(true)}
-            className="px-6 py-3 border border-[#DDD5C8] text-[#32171B] rounded-md text-[11px] font-bold flex items-center gap-2 hover:bg-[#FAF7F2] transition-all"
-          >
-            <Icons.analytics className="w-3.5 h-3.5 opacity-60" />
-            Sync Content
-          </button>
           <Link 
             href="/dashboard/blog/new"
             className="bg-[#32171B] text-white px-6 py-3 rounded-md text-xs font-bold hover:bg-[#4a2228] transition-all flex items-center gap-2 shadow-sm"
@@ -297,15 +284,7 @@ export default function BlogPage() {
         )}
       </div>
 
-      <ConfirmationModal 
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-        onConfirm={handleSyncData}
-        title="Sync Mock Data"
-        message="This will reset your blog list to the default high-fidelity mock data. Any unsaved local changes will be lost. Proceed?"
-        confirmText="Yes, Sync Data"
-        type="primary"
-      />
+
 
       <ConfirmationModal 
         isOpen={isDeleteModalOpen}
@@ -327,15 +306,7 @@ export default function BlogPage() {
         type="success"
       />
 
-      <ConfirmationModal 
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-        onConfirm={handleSyncData}
-        title="Sync Content Database"
-        message="This will reset your local blog posts to the latest high-fidelity mock data. Any unsaved changes will be lost. Proceed?"
-        confirmText="Yes, Sync Now"
-        type="primary"
-      />
+
 
       <BlogPreview
         isOpen={isPreviewOpen}

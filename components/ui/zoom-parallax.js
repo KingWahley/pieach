@@ -40,11 +40,11 @@ function ProjectSlider({ images, isVisible }) {
 
   return (
     <div 
-      className={`absolute inset-0 z-50 flex items-center justify-center transition-opacity duration-500 overflow-hidden ${
-        isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      className={`absolute inset-0 z-50 flex items-center justify-center transition-opacity duration-500 overflow-hidden pointer-events-none ${
+        isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
-      <div className="absolute inset-0 bg-[#090d12]">
+      <div className="absolute inset-0 bg-[#090d12] pointer-events-none">
         {images.map((img, idx) => (
           <div 
             key={idx} 
@@ -65,7 +65,7 @@ function ProjectSlider({ images, isVisible }) {
                 )}
                 <a
                   href="/projects"
-                  className="animate-[pulse-border_3s_infinite] relative z-0 inline-block overflow-hidden border border-[#c9a96e] px-8 md:px-12 py-[0.9rem] md:py-[1.1rem] text-[0.7rem] md:text-[0.78rem] uppercase tracking-[0.2em] text-[#f5f2ec] transition-colors duration-400 before:absolute before:inset-0 before:-z-10 before:origin-left before:scale-x-0 before:bg-[#c9a96e] before:transition-transform before:duration-400 hover:text-[#0b0f14] hover:before:scale-x-100"
+                  className="pointer-events-auto animate-[pulse-border_3s_infinite] relative z-0 inline-block overflow-hidden border border-[#c9a96e] px-8 md:px-12 py-[0.9rem] md:py-[1.1rem] text-[0.7rem] md:text-[0.78rem] uppercase tracking-[0.2em] text-[#f5f2ec] transition-colors duration-400 before:absolute before:inset-0 before:-z-10 before:origin-left before:scale-x-0 before:bg-[#c9a96e] before:transition-transform before:duration-400 hover:text-[#0b0f14] hover:before:scale-x-100"
                 >
                   View All Projects
                 </a>
@@ -83,7 +83,7 @@ function ProjectSlider({ images, isVisible }) {
               exit={{ scale: 0.5, opacity: 0, x: "40vw", y: "-50%" }}
               transition={{ type: "spring", bounce: 0.5, duration: 0.8, delay: 0.2 }}
               onClick={() => slideTo('prev')}
-              className="absolute left-4 top-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition-colors hover:bg-gray-200 md:left-8 md:h-16 md:w-16 focus:outline-none cursor-pointer"
+              className="pointer-events-auto absolute left-4 top-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition-colors hover:bg-gray-200 md:left-8 md:h-16 md:w-16 focus:outline-none cursor-pointer"
             >
               <svg className="h-6 w-6 md:h-8 md:w-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -95,7 +95,7 @@ function ProjectSlider({ images, isVisible }) {
               exit={{ scale: 0.5, opacity: 0, x: "-40vw", y: "-50%" }}
               transition={{ type: "spring", bounce: 0.5, duration: 0.8, delay: 0.2 }}
               onClick={() => slideTo('next')}
-              className="absolute right-4 top-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition-colors hover:bg-gray-200 md:right-8 md:h-16 md:w-16 focus:outline-none cursor-pointer"
+              className="pointer-events-auto absolute right-4 top-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition-colors hover:bg-gray-200 md:right-8 md:h-16 md:w-16 focus:outline-none cursor-pointer"
             >
               <svg className="h-6 w-6 md:h-8 md:w-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -105,7 +105,7 @@ function ProjectSlider({ images, isVisible }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-3"
+              className="pointer-events-auto absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-3"
             >
               {images.map((_, idx) => (
                 <div

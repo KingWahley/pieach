@@ -30,10 +30,22 @@ export function useFilterSort(data = [], initialFilters = {}, initialSort = { ke
     // Sort
     if (sortConfig && sortConfig.key) {
       result.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        
+        if (valA !== undefined && valB !== undefined && valA !== null && valB !== null) {
+          const numA = Number(valA);
+          const numB = Number(valB);
+          if (!isNaN(numA) && !isNaN(numB) && valA !== '' && valB !== '') {
+            valA = numA;
+            valB = numB;
+          }
+        }
+        
+        if (valA < valB) {
           return sortConfig.order === 'asc' ? -1 : 1;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (valA > valB) {
           return sortConfig.order === 'asc' ? 1 : -1;
         }
         return 0;

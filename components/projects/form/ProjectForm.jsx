@@ -3,6 +3,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useStore } from '@/hooks/useStore';
+import { projectCategoriesStore } from '@/lib/store';
 import ProjectBasicFields from './ProjectBasicFields';
 import AdditionalDescriptionFields from './AdditionalDescriptionFields';
 import GalleryUpload from './GalleryUpload';
@@ -12,6 +14,7 @@ import '@/app/(admin)/dashboard/(protected)/projects/new/project-form.css';
 
 export default function ProjectForm({ mode = 'create', initialData = null, onSubmit }) {
   const router = useRouter();
+  const { data: categories } = useStore(projectCategoriesStore);
   
   // Helper to split location (e.g. "Abeokuta, Ogun State, Nigeria") into city, state, country
   let initialCity = initialData?.city || '';
@@ -161,6 +164,7 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
           formData={formData} 
           handleChange={handleChange} 
           errors={errors} 
+          categories={categories}
         />
         
         <AdditionalDescriptionFields 

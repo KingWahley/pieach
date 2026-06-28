@@ -69,7 +69,7 @@ export default function ProjectCategoriesPage() {
   };
 
   const getProjectCount = (catName) => {
-    return projects.filter(p => p.category === catName).length;
+    return projects.filter(p => p.category?.toLowerCase() === catName?.toLowerCase()).length;
   };
 
   return (

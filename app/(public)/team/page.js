@@ -22,11 +22,16 @@ export default async function TeamPage() {
     .select('*')
     .order('order_index');
 
-  const formattedMembers = (teamMembers || []).map(member => ({
-    ...member,
-    bio: member.bio || [],
-    qualifications: member.qualifications || []
-  }));
+  const formattedMembers = (teamMembers || [])
+    .filter(member => {
+      const status = (member.gender || 'active').toLowerCase();
+      return status !== 'archived' && status !== 'inactive';
+    })
+    .map(member => ({
+      ...member,
+      bio: member.bio || [],
+      qualifications: member.qualifications || []
+    }));
 
   return (
     <>

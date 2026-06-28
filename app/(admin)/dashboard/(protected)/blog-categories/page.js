@@ -69,7 +69,7 @@ export default function BlogCategoriesPage() {
   };
 
   const getPostCount = (catName) => {
-    return posts.filter(p => p.category === catName).length;
+    return posts.filter(p => p.category?.toLowerCase() === catName?.toLowerCase()).length;
   };
 
   return (

@@ -17,7 +17,7 @@ import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 export default function TeamPage() {
   const router = useRouter();
-  const { data, deleteItem } = useStore(teamStore);
+  const { data, updateItem, deleteItem } = useStore(teamStore);
   
   const { 
     filteredAndSortedData, 
@@ -28,7 +28,7 @@ export default function TeamPage() {
   } = useFilterSort(
     data, 
     { role: 'all', status: 'all' }, 
-    { key: 'name', order: 'asc' }
+    { key: 'displayOrder', order: 'asc' }
   );
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,12 +37,75 @@ export default function TeamPage() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
+  // Reorder State
+  const [isReorderOpen, setIsReorderOpen] = useState(false);
+  const [reorderList, setReorderList] = useState([]);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     id: null,
     name: ''
   });
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.style.opacity = '0.3';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const listCopy = [...reorderList];
+    const draggedItem = listCopy[draggedIndex];
+    listCopy.splice(draggedIndex, 1);
+    listCopy.splice(index, 0, draggedItem);
+    
+    setDraggedIndex(index);
+    setReorderList(listCopy);
+  };
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.style.opacity = '1';
+    setDraggedIndex(null);
+  };
+
+  const openReorderModal = () => {
+    const sorted = [...data].sort((a, b) => {
+      const numA = Number(a.displayOrder || 0);
+      const numB = Number(b.displayOrder || 0);
+      return numA - numB;
+    });
+    setReorderList(sorted);
+    setIsReorderOpen(true);
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      for (let i = 0; i < reorderList.length; i++) {
+        const item = reorderList[i];
+        const newOrder = String(i + 1);
+        if (item.displayOrder !== newOrder) {
+          await updateItem(item.id, { ...item, displayOrder: newOrder });
+        }
+      }
+      setIsReorderOpen(false);
+    } catch (error) {
+      console.error('Error saving team order:', error);
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
 
   const handlePreview = (member) => {
     setSelectedMember(member);
@@ -205,7 +268,22 @@ export default function TeamPage() {
         background: 'var(--cream-light)'
       }}>
         <h2 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--ink-mid)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Team List View</h2>
-        <a href="#" style={{ fontSize: '11px', color: 'var(--gold-dark)', textDecoration: 'none', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reorder team display →</a>
+        <button 
+          onClick={openReorderModal}
+          style={{ 
+            background: 'none',
+            border: 'none',
+            fontSize: '11px', 
+            color: 'var(--gold-dark)', 
+            fontWeight: '700', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em',
+            cursor: 'pointer',
+            padding: 0
+          }}
+        >
+          Reorder team display →
+        </button>
       </div>
 
       {/* Main Content Area */}
@@ -267,7 +345,7 @@ export default function TeamPage() {
                       <button 
                         className="action-btn" 
                         title="View"
-                        onClick={() => handlePreview(member)}
+                        onClick={() => window.open(`/team/${member.slug || ''}`, '_blank')}
                       >
                         <Icons.eye style={{ width: '14px', height: '14px' }} />
                       </button>
@@ -344,6 +422,122 @@ export default function TeamPage() {
         confirmText="Delete Profile"
         type="danger"
       />
+
+      {isReorderOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(9, 13, 18, 0.65)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100
+        }}>
+          <div style={{
+            background: 'var(--cream)',
+            border: '1px solid var(--stone)',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.25)',
+            borderRadius: '12px',
+            width: '90%',
+            maxWidth: '540px',
+            maxHeight: '85vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--stone)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '12px', fontWeight: '800', color: 'var(--burgundy)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Reorder Team Members
+              </h2>
+              <button 
+                onClick={() => setIsReorderOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-light)', padding: 0 }}
+              >
+                <Icons.close style={{ width: '18px', height: '18px' }} />
+              </button>
+            </div>
+            
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: 'var(--ink-mid)', lineHeight: '1.5' }}>
+                Drag and drop team members to reorder their display order on the live website. Click &quot;Save Order&quot; to publish the changes.
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {reorderList.map((member, idx) => (
+                  <div 
+                    key={member.id}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnter={(e) => handleDragEnter(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    style={{
+                      background: 'var(--white)',
+                      border: '1.5px solid var(--stone)',
+                      borderRadius: '8px',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      transition: 'all 0.25s ease',
+                      cursor: 'grab'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {/* Drag Grip Handle */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: 'var(--ink-light)', paddingRight: '4px' }}>
+                        <div style={{ width: '12px', height: '2px', background: 'currentColor' }} />
+                        <div style={{ width: '12px', height: '2px', background: 'currentColor' }} />
+                        <div style={{ width: '12px', height: '2px', background: 'currentColor' }} />
+                      </div>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: 'var(--burgundy)',
+                        color: 'var(--white)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '11px',
+                        fontWeight: '800'
+                      }}>
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--ink)' }}>
+                          {member.title} {member.name}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--gold-dark)', fontWeight: '700' }}>
+                          {member.role}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--stone)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: 'var(--cream-light)' }}>
+              <button 
+                className="secondary-btn" 
+                onClick={() => setIsReorderOpen(false)}
+                disabled={isSavingOrder}
+              >
+                Cancel
+              </button>
+              <button 
+                className="primary-btn" 
+                onClick={handleSaveOrder}
+                disabled={isSavingOrder}
+              >
+                {isSavingOrder ? 'Saving...' : 'Save Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .team-row:hover {

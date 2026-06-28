@@ -112,9 +112,14 @@ export default function MessagesPage() {
   };
 
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
 
-  const handleCopyEmail = (email) => {
+  const handleCopyEmail = (email, id = null) => {
     navigator.clipboard.writeText(email);
+    if (id) {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
     setCopyFeedback(true);
     setTimeout(() => setCopyFeedback(false), 2000);
   };
@@ -294,11 +299,35 @@ export default function MessagesPage() {
                             <Icons.eye className="w-3.5 h-3.5" />
                           </button>
                           <button 
-                            onClick={() => handleCopyEmail(msg.email)}
+                            onClick={() => handleCopyEmail(msg.email, msg.id)}
                             title="Copy Email"
                             className="p-1.5 border border-[#DDD5C8] rounded text-[#5C4E45] hover:bg-[#FAF7F2] transition-colors relative"
                           >
-                            <Icons.copy className="w-3.5 h-3.5" />
+                            {copiedId === msg.id ? (
+                              <>
+                                <Icons.check className="w-3.5 h-3.5 text-green-600 animate-[scaleIn_0.2s_ease-out]" />
+                                <span style={{
+                                  position: 'absolute',
+                                  bottom: '125%',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  backgroundColor: 'var(--ink)',
+                                  color: 'white',
+                                  fontSize: '9px',
+                                  padding: '3px 6px',
+                                  borderRadius: '3px',
+                                  whiteSpace: 'nowrap',
+                                  pointerEvents: 'none',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                  zIndex: 10,
+                                  animation: 'fadeIn 0.2s ease-out'
+                                }}>
+                                  Copied!
+                                </span>
+                              </>
+                            ) : (
+                              <Icons.copy className="w-3.5 h-3.5" />
+                            )}
                           </button>
                           <button 
                             onClick={() => updateItem(msg.id, { ...msg, status: msg.status === 'unread' ? 'read' : 'unread' })}
@@ -452,6 +481,14 @@ export default function MessagesPage() {
           background-position: right 0.75rem center;
           background-size: 1rem;
           padding-right: 2.5rem;
+        }
+        @keyframes scaleIn {
+          from { transform: scale(0.6); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translate(-50%, 4px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
     </DashboardLayout>

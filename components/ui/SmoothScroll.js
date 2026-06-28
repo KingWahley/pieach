@@ -3,6 +3,12 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function SmoothScroll() {
   const pathname = usePathname();
@@ -20,16 +26,20 @@ export default function SmoothScroll() {
     // Reset Lenis internal scroll state to top immediately
     lenis.scrollTo(0, { immediate: true });
 
-    let rafId;
-    function raf(time) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
+    // Sync ScrollTrigger with Lenis
+    lenis.on('scroll', ScrollTrigger.update);
 
-    rafId = requestAnimationFrame(raf);
+    // Sync Lenis with GSAP ticker
+    const tick = (time) => {
+      lenis.raf(time * 1000);
+    };
+    gsap.ticker.add(tick);
+    
+    // Disable lag smoothing to prevent visual stuttering
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(tick);
       lenis.destroy();
     };
   }, [pathname]);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { projectStatuses, projectCategories, countryOptions } from '@/data/projectOptions';
 
-export default function ProjectBasicFields({ formData, handleChange, errors }) {
+export default function ProjectBasicFields({ formData, handleChange, errors, categories = [] }) {
   return (
     <>
       <div className="form-field">
@@ -55,9 +55,14 @@ export default function ProjectBasicFields({ formData, handleChange, errors }) {
           style={errors.category ? { borderColor: 'var(--red)' } : {}}
         >
           <option value="" disabled>Select a category</option>
-          {projectCategories.map(cat => (
-            <option key={cat.value} value={cat.label}>{cat.label}</option>
-          ))}
+          {(() => {
+            const list = categories.length > 0 
+              ? categories.map(cat => ({ value: cat.name, label: cat.name })) 
+              : projectCategories;
+            return list.map(cat => (
+              <option key={cat.value} value={cat.value}>{cat.label}</option>
+            ));
+          })()}
         </select>
       </div>
       <div className="form-field full">

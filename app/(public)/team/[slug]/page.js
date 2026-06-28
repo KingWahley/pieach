@@ -108,7 +108,8 @@ export default async function TeamMemberDetailsPage({ params }) {
     .eq('slug', slug)
     .maybeSingle();
 
-  if (!member) {
+  const memberStatus = (member?.gender || 'active').toLowerCase();
+  if (!member || memberStatus === 'archived' || memberStatus === 'inactive') {
     notFound();
   }
 
@@ -118,11 +119,16 @@ export default async function TeamMemberDetailsPage({ params }) {
     .select('*')
     .order('order_index');
 
-  const formattedMembers = (allMembers || []).map(m => ({
-    ...m,
-    bio: m.bio || [],
-    qualifications: m.qualifications || []
-  }));
+  const formattedMembers = (allMembers || [])
+    .filter(m => {
+      const status = (m.gender || 'active').toLowerCase();
+      return status !== 'archived' && status !== 'inactive';
+    })
+    .map(m => ({
+      ...m,
+      bio: m.bio || [],
+      qualifications: m.qualifications || []
+    }));
 
   return (
     <div className="bg-white text-neutral-900 pt-32">
