@@ -148,7 +148,7 @@ export default async function BlogPage() {
                     </Link>
                   </h3>
                   
-                  <p className="font-serif text-neutral-600 text-sm sm:text-base leading-relaxed font-light">
+                  <p className="font-serif text-neutral-600 text-sm sm:text-base leading-relaxed font-light whitespace-pre-line">
                     {article.summary}
                   </p>
 

@@ -5,6 +5,19 @@ import Link from "next/link";
 
 export const revalidate = 60; // Revalidate every minute
 
+const formatBlogContent = (content) => {
+  if (!content) return '';
+  // If it already has HTML paragraphs/breaks/headings, return as-is
+  if (content.includes('<p>') || content.includes('<div>') || content.includes('<br>') || content.includes('<h')) {
+    return content;
+  }
+  // Otherwise, split by double newlines to create paragraph tags, and single newlines to <br/>
+  return content
+    .split(/\r?\n\r?\n/)
+    .map(para => `<p>${para.replace(/\r?\n/g, '<br />')}</p>`)
+    .join('');
+};
+
 export async function generateStaticParams() {
   const supabase = createServerClient();
   const { data } = await supabase
@@ -99,7 +112,7 @@ export default async function BlogPostPage({ params }) {
             prose-headings:text-neutral-950 prose-headings:font-bold prose-h3:text-lg prose-h3:mt-8
             prose-blockquote:border-l-4 prose-blockquote:border-brand-gold prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-neutral-600 prose-blockquote:font-serif
             prose-ul:list-disc prose-ul:pl-6 prose-li:my-2"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: formatBlogContent(post.content) }}
         />
 
       </div>

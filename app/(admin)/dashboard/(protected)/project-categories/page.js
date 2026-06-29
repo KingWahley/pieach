@@ -18,11 +18,13 @@ export default function ProjectCategoriesPage() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', slug: '', description: '', status: 'Active' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
   const pageSize = 7;
 
   // Confirmation Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [catToDelete, setCatToDelete] = useState(null);
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAndSortedData.length / pageSize);
@@ -30,13 +32,30 @@ export default function ProjectCategoriesPage() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    setSelectedIds([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Reset page when search changes
   React.useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
   }, [searchQuery]);
+
+  const toggleSelect = (id, e) => {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedData.map(c => c.id));
+    }
+  };
 
   const toggleForm = () => {
     if (isFormOpen) {
@@ -106,7 +125,20 @@ export default function ProjectCategoriesPage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         placeholder="Search categories by name or description"
-      />
+      >
+        {selectedIds.length > 0 && (
+          <button 
+            onClick={() => {
+              setIsBulkDelete(true);
+              setIsDeleteModalOpen(true);
+            }}
+            className="secondary-btn"
+            style={{ color: 'var(--red)', borderColor: 'var(--red)', background: 'transparent', padding: '10px 14px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', height: '38px' }}
+          >
+            Delete Selected ({selectedIds.length})
+          </button>
+        )}
+      </SearchToolbar>
 
       <div style={{ display: 'grid', gridTemplateColumns: isFormOpen ? '360px 1fr' : '1fr', gap: '18px', alignItems: 'start', transition: 'grid-template-columns 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)' }}>
         {/* Form Card */}
@@ -167,6 +199,14 @@ export default function ProjectCategoriesPage() {
             <table className="project-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                      onChange={toggleSelectAll}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </th>
                   <th>Category</th>
                   <th>Slug</th>
                   <th>Projects</th>
@@ -177,6 +217,14 @@ export default function ProjectCategoriesPage() {
               <tbody>
                 {paginatedData.map((cat) => (
                   <tr key={cat.id}>
+                    <td onClick={(e) => toggleSelect(cat.id, e)}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.includes(cat.id)}
+                        readOnly
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </td>
                     <td>
                       <div className="project-title">{cat.name}</div>
                       <div className="project-desc" style={{ maxWidth: '300px' }}>{cat.description}</div>
@@ -211,7 +259,7 @@ export default function ProjectCategoriesPage() {
                 ))}
                 {filteredAndSortedData.length === 0 && (
                   <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: 'var(--ink-light)' }}>No categories found</td>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--ink-light)' }}>No categories found</td>
                   </tr>
                 )}
               </tbody>
@@ -228,15 +276,28 @@ export default function ProjectCategoriesPage() {
       </div>
       <ConfirmationModal 
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={() => {
-          deleteItem(catToDelete.id);
+        onClose={() => {
           setIsDeleteModalOpen(false);
+          setIsBulkDelete(false);
           setCatToDelete(null);
         }}
-        title="Delete Category"
-        message={`Are you sure you want to delete the category "${catToDelete?.name}"? This will affect projects associated with this category.`}
-        confirmText="Delete Category"
+        onConfirm={() => {
+          if (isBulkDelete) {
+            selectedIds.forEach(id => deleteItem(id));
+            setSelectedIds([]);
+            setIsBulkDelete(false);
+          } else if (catToDelete) {
+            deleteItem(catToDelete.id);
+            setCatToDelete(null);
+          }
+          setIsDeleteModalOpen(false);
+        }}
+        title={isBulkDelete ? "Delete Multiple Categories" : "Delete Category"}
+        message={isBulkDelete 
+          ? `Are you sure you want to permanently delete the ${selectedIds.length} selected categories? This will affect projects associated with these categories.`
+          : `Are you sure you want to delete the category "${catToDelete?.name}"? This will affect projects associated with this category.`
+        }
+        confirmText={isBulkDelete ? `Delete ${selectedIds.length} Categories` : "Delete Category"}
         type="danger"
       />
       <style dangerouslySetInnerHTML={{__html: `

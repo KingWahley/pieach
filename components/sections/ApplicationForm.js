@@ -3,6 +3,7 @@
 
 import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { uploadFile } from "@/lib/upload";
 
 export default function ApplicationForm({ vacancyId, roleTitle }) {
   const [formData, setFormData] = useState({
@@ -47,27 +48,34 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
     const applicationId = `app_${Date.now()}`;
     let cvUrl = null;
 
-    // Attempt file upload with safety fallback if storage bucket doesn't exist
+    // Attempt file upload using Next.js API route (service role key bypasses RLS)
     if (cvFile) {
       try {
-        const fileExt = cvFile.name.split('.').pop();
-        const filePath = `${applicationId}_cv.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('applications')
-          .upload(filePath, cvFile);
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('applications')
-            .getPublicUrl(filePath);
-          cvUrl = publicUrl;
-        } else {
-          console.warn('Storage bucket applications upload failed, using mock URL fallback.');
-          cvUrl = `https://supabase-storage-fallback.local/applications/${filePath}`;
-        }
+        cvUrl = await uploadFile(cvFile, 'applications');
       } catch (err) {
-        console.warn('File upload exception, using fallback:', err);
-        cvUrl = `https://supabase-storage-fallback.local/applications/${applicationId}_cv.pdf`;
+        console.warn('Upload to applications bucket via API failed, trying media bucket fallback...', err);
+        try {
+          cvUrl = await uploadFile(cvFile, 'media', 'applications');
+        } catch (mediaErr) {
+          console.error('All bucket uploads failed via API, using fallback URL.', mediaErr);
+          const fileExt = cvFile.name.split('.').pop();
+          cvUrl = `https://supabase-storage-fallback.local/applications/${applicationId}_cv.${fileExt}`;
+        }
+      }
+    }
+    let coverUrl = '';
+    if (coverFile) {
+      try {
+        coverUrl = await uploadFile(coverFile, 'applications');
+      } catch (err) {
+        console.warn('Upload to applications bucket via API failed for cover letter, trying media bucket fallback...', err);
+        try {
+          coverUrl = await uploadFile(coverFile, 'media', 'applications');
+        } catch (mediaErr) {
+          console.error('All bucket uploads failed via API for cover letter, using fallback URL.', mediaErr);
+          const fileExt = coverFile.name.split('.').pop();
+          coverUrl = `https://supabase-storage-fallback.local/applications/${applicationId}_cover.${fileExt}`;
+        }
       }
     }
 
@@ -84,7 +92,7 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
           date: new Date().toISOString().split('T')[0],
           cv_file_name: cvFile.name,
           cv_file_url: cvUrl,
-          cover_letter: coverFile ? `Cover letter file: ${coverFile.name}` : ''
+          cover_letter: coverUrl || ''
         }]);
 
       if (error) {

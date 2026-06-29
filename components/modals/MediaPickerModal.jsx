@@ -12,11 +12,15 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect, title = "S
   const [selectedIds, setSelectedIds] = useState([]);
 
   const images = useMemo(() => {
-    return data.filter(item => 
-      item.type.startsWith('image/') && 
-      (item.filename.toLowerCase().includes(searchQuery.toLowerCase()) || 
-       item.type.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    return data.filter(item => {
+      const type = item.type || '';
+      const name = item.name || item.filename || '';
+      return (
+        type.startsWith('image/') && 
+        (name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         type.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    });
   }, [data, searchQuery]);
 
   const toggleSelection = (id) => {

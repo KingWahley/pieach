@@ -175,9 +175,9 @@ export async function GET(request) {
     const { jobApplicationsData } = require('@/data/mockData');
     const mappedApplications = jobApplicationsData.map(a => ({
       id: a.id,
-      vacancy_id: a.vacancyId || null,
+      vacancy_id: a.jobId || null,
       applicant_name: a.applicantName,
-      applicant_email: a.applicantEmail || 'applicant@example.com',
+      applicant_email: a.email || 'applicant@example.com',
       role_applied: a.roleApplied,
       status: a.status,
       date: a.date,
@@ -226,6 +226,17 @@ export async function GET(request) {
     await supabase.from('calendar_settings').upsert([
       { id: 'default', settings: initialCalendarSettings }
     ]);
+
+    // 12. Seed Media Assets
+    const { mediaData } = require('@/data/mockData');
+    const mappedMedia = mediaData.map(m => ({
+      id: m.id,
+      name: m.filename || m.name || 'unnamed',
+      url: m.url || '',
+      size: m.size || '',
+      type: m.type || ''
+    }));
+    await supabase.from('media').upsert(mappedMedia);
 
     return NextResponse.json({ success: true, message: 'Database successfully seeded!' });
   } catch (error) {

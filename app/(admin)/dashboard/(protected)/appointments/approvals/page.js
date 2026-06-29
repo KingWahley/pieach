@@ -9,6 +9,7 @@ import AppointmentStatusBadge from '@/components/appointments/AppointmentStatusB
 import { Icons } from '@/components/shared/Icons';
 import { format, isToday, isSameWeek } from 'date-fns';
 import Pagination from '@/components/shared/Pagination';
+import { sendApprovalEmail } from '@/utils/emailHelpers';
 
 export default function AppointmentApprovalsPage() {
   const { data: appointments, updateItem } = useStore(appointmentsStore);
@@ -61,11 +62,16 @@ export default function AppointmentApprovalsPage() {
   const selectedAppt = appointments.find(a => a.id === selectedId) || null;
 
   const handleStatusUpdate = (id, newStatus) => {
-    updateItem(id, { 
+    const appt = appointments.find(a => a.id === id);
+    const updatePayload = { 
       status: newStatus,
       updatedAt: new Date().toISOString(),
       internalNotes: adminNote
-    });
+    };
+    updateItem(id, updatePayload);
+    if (newStatus === 'Approved' && appt) {
+      sendApprovalEmail({ ...appt, ...updatePayload });
+    }
     setAdminNote('');
     if (selectedId === id) setSelectedId(null);
   };
@@ -78,7 +84,7 @@ export default function AppointmentApprovalsPage() {
           <p className="text-[11px] text-[var(--ink-light)]">Review pending appointment bookings and approve or reject them before they are confirmed.</p>
         </div>
         <button 
-          onClick={() => window.location.href = '/appointments/calendar'}
+          onClick={() => window.location.href = '/dashboard/appointments/calendar'}
           className="primary-btn px-4 py-2 bg-[var(--burgundy)] text-white rounded-md font-bold text-sm"
         >
           View Calendar

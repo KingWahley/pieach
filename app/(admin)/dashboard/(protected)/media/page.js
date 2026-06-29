@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useMemo } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Icons } from '@/components/shared/Icons';
 import SearchToolbar from '@/components/shared/SearchToolbar';
@@ -8,6 +9,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import GridToggle from '@/components/shared/GridToggle';
 import { useStore } from '@/hooks/useStore';
 import { mediaStore } from '@/lib/store';
+import { uploadFile } from '@/lib/upload';
 import { useFilterSort } from '@/hooks/useFilterSort';
 import { useViewMode } from '@/hooks/useViewMode';
 import Pagination from '@/components/shared/Pagination';
@@ -76,36 +78,101 @@ export default function MediaPage() {
     setIsDeleteModalOpen(false);
   };
 
-  const stats = useMemo(() => [
-    { label: 'Total Files', value: data.length },
-    { label: 'Project Images', value: data.filter(i => i.usage === 'Project' || i.type?.includes('image')).length },
-    { label: 'Documents', value: data.filter(i => !i.type?.includes('image')).length },
-    { label: 'Storage Used', value: '2.4GB' }
-  ], [data]);
+  const parseSizeToBytes = (sizeStr) => {
+    if (!sizeStr) return 0;
+    const cleanStr = String(sizeStr).trim().toUpperCase();
+    const value = parseFloat(cleanStr);
+    if (isNaN(value)) return 0;
+    
+    if (cleanStr.includes('GB')) {
+      return value * 1024 * 1024 * 1024;
+    } else if (cleanStr.includes('MB')) {
+      return value * 1024 * 1024;
+    } else if (cleanStr.includes('KB')) {
+      return value * 1024;
+    }
+    return value;
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const stats = useMemo(() => {
+    const totalBytes = data.reduce((acc, file) => acc + parseSizeToBytes(file.size), 0);
+    return [
+      { label: 'Total Files', value: data.length },
+      { label: 'Project Images', value: data.filter(i => i.usage === 'Project' || i.type?.includes('image')).length },
+      { label: 'Documents', value: data.filter(i => !i.type?.includes('image')).length },
+      { label: 'Storage Used', value: formatBytes(totalBytes) }
+    ];
+  }, [data]);
 
   const handleSelect = (file) => {
     setSelectedFile(file);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach(file => {
-      const newAsset = {
-        id: Math.random().toString(36).substr(2, 9),
+    for (const file of Array.from(files)) {
+      const tempUrl = URL.createObjectURL(file);
+      const tempId = `m_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+      const tempAsset = {
+        id: tempId,
         filename: file.name,
         type: file.type,
         size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
         dateAdded: new Date().toISOString().split('T')[0],
-        url: URL.createObjectURL(file),
+        url: tempUrl,
         usage: 'Project',
         altText: '',
         caption: '',
         usedIn: ['Unassigned']
       };
-      createItem(newAsset);
-    });
+      createItem(tempAsset);
+
+      try {
+        const finalUrl = await uploadFile(file, 'media');
+        updateItem(tempId, { url: finalUrl });
+      } catch (err) {
+        console.error('Error uploading/registering media asset:', err);
+      }
+    }
+  };
+
+  const handleDownloadFile = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      window.open(url, '_blank');
+    }
+  };
+  const handleBulkDownload = async () => {
+    const selectedFiles = data.filter(file => selectedIds.includes(file.id));
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      handleDownloadFile(file.url, file.filename);
+      if (i < selectedFiles.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
   };
 
   return (
@@ -136,13 +203,22 @@ export default function MediaPage() {
           
           <div className="flex items-center gap-3">
             {selectedIds.length > 0 && (
-              <button 
-                onClick={handleBulkDelete}
-                className="flex items-center gap-2 bg-[var(--red)] text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-[var(--red-dark)] transition-colors shadow-md"
-              >
-                <Icons.trash className="w-4 h-4" />
-                Delete ({selectedIds.length})
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleBulkDownload}
+                  className="flex items-center gap-2 bg-[var(--gold)] text-[var(--burgundy)] px-5 py-3 rounded-xl text-sm font-bold hover:bg-[var(--gold-dark)] transition-colors shadow-md"
+                >
+                  <Icons.download className="w-4 h-4" />
+                  Download ({selectedIds.length})
+                </button>
+                <button 
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-[var(--red)] text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-[var(--red-dark)] transition-colors shadow-md"
+                >
+                  <Icons.trash className="w-4 h-4" />
+                  Delete ({selectedIds.length})
+                </button>
+              </div>
             )}
             <GridToggle view={view} onViewChange={setView} />
             
@@ -216,6 +292,16 @@ export default function MediaPage() {
                         <div className="absolute top-2 right-2 px-2 py-0.5 bg-white/90 backdrop-blur rounded-md text-[8px] font-bold uppercase tracking-tight shadow-sm">
                           {file.type?.split('/')[1] || 'File'}
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadFile(file.url, file.filename);
+                          }}
+                          className="absolute bottom-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 bg-white/90 hover:bg-[var(--gold)] text-[var(--burgundy)] hover:text-white rounded-lg shadow-md backdrop-blur"
+                          title="Download Asset"
+                        >
+                          <Icons.download className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                       <div className="p-3">
                         <div className="text-[11px] font-bold text-[var(--ink)] truncate mb-1">{file.filename}</div>
@@ -243,6 +329,7 @@ export default function MediaPage() {
                       <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--burgundy)]">Usage</th>
                       <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--burgundy)]">Size</th>
                       <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--burgundy)]">Date</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--burgundy)]">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -284,6 +371,15 @@ export default function MediaPage() {
                         </td>
                         <td className="px-4 py-3 text-xs text-[var(--ink-mid)]">{file.size}</td>
                         <td className="px-4 py-3 text-xs text-[var(--ink-mid)]">{file.dateAdded}</td>
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleDownloadFile(file.url, file.filename)}
+                            className="p-1.5 bg-white hover:bg-[var(--gold)] text-[var(--burgundy)] hover:text-white border border-[var(--stone-dark)] rounded-lg transition-all"
+                            title="Download"
+                          >
+                            <Icons.download className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -388,13 +484,22 @@ export default function MediaPage() {
               </div>
 
               <div className="p-5 border-t border-[var(--stone-dark)] bg-[var(--cream-light)] rounded-b-2xl flex items-center justify-between gap-3">
-                <button 
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-[var(--red)] border border-[var(--red)] rounded-lg text-[10px] font-bold hover:bg-[var(--red-light)] transition-colors"
-                >
-                  <Icons.trash className="w-3 h-3" />
-                  Delete
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 text-[var(--red)] border border-[var(--red)] rounded-lg text-[10px] font-bold hover:bg-[var(--red-light)] transition-colors"
+                  >
+                    <Icons.trash className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                  <button 
+                    onClick={() => handleDownloadFile(selectedFile.url, selectedFile.filename)}
+                    className="flex items-center gap-2 px-3 py-2 text-[var(--burgundy)] border border-[var(--stone-dark)] rounded-lg text-[10px] font-bold hover:bg-[var(--cream)] transition-colors"
+                  >
+                    <Icons.download className="w-3.5 h-3.5" />
+                    Download
+                  </button>
+                </div>
                 <button 
                   onClick={() => {
                     updateItem(selectedFile.id, selectedFile);

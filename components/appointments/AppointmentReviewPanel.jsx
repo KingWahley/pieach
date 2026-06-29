@@ -6,10 +6,27 @@ import { formatAppointmentDate } from '@/utils/appointmentHelpers';
 import AppointmentStatusBadge from './AppointmentStatusBadge';
 import { APPOINTMENT_STATUSES } from '@/constants/appointmentStatus';
 
+const parseMessage = (msg) => {
+  if (!msg) return { format: '', context: '', location: '', description: 'No details provided.' };
+  
+  const formatMatch = msg.match(/Format:\s*([^\.]+)/i);
+  const contextMatch = msg.match(/Context:\s*([^\.]+)/i);
+  const locationMatch = msg.match(/Location:\s*([^\.]+)/i);
+  const descMatch = msg.match(/Description:\s*(.*)/i);
+
+  return {
+    format: formatMatch ? formatMatch[1].trim() : '',
+    context: contextMatch ? contextMatch[1].trim() : '',
+    location: locationMatch ? locationMatch[1].trim() : '',
+    description: descMatch ? descMatch[1].trim() : msg
+  };
+};
+
 export default function AppointmentReviewPanel({ 
   appointment, 
   onClose, 
-  onStatusChange 
+  onStatusChange,
+  onDelete
 }) {
   const overlayRef = useRef(null);
   const panelRef = useRef(null);
@@ -75,6 +92,8 @@ export default function AppointmentReviewPanel({
 
   if (!appointment) return null;
 
+  const parsed = parseMessage(appointment.message);
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end" style={{ visibility: 'hidden' }} ref={overlayRef}>
       {/* Backdrop */}
@@ -92,8 +111,12 @@ export default function AppointmentReviewPanel({
         <div className="p-6 border-b border-[rgba(0,0,0,0.05)] bg-white flex justify-between items-start">
           <div>
             <h2 className="text-xl font-bold text-[var(--burgundy)] mb-1">{appointment.clientName}</h2>
-            <div className="text-[12px] text-[var(--ink-light)] font-bold">{appointment.email}</div>
-            <div className="text-[11px] text-[var(--ink-light)]">{appointment.phone}</div>
+            <div className="text-[12px] text-[var(--ink-light)] font-bold">
+              {appointment.clientEmail || appointment.email || 'N/A'}
+            </div>
+            <div className="text-[11px] text-[var(--ink-light)]">
+              {appointment.clientPhone || appointment.phone || 'N/A'}
+            </div>
           </div>
           <button 
             onClick={handleClose}
@@ -122,13 +145,9 @@ export default function AppointmentReviewPanel({
             <section>
               <h3 className="text-[11px] uppercase tracking-wider text-[var(--ink-light)] font-bold mb-3 border-b border-[rgba(0,0,0,0.05)] pb-1">Request Details</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-[10px] text-[var(--ink-light)] mb-1">Service</div>
-                  <div className="font-bold">{appointment.service}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-[var(--ink-light)] mb-1">Assigned Staff</div>
-                  <div className="font-bold">{appointment.assignedStaff}</div>
+                <div className="col-span-2">
+                  <div className="text-[10px] text-[var(--ink-light)] mb-1">Service Requested</div>
+                  <div className="font-bold text-[var(--burgundy)]">{appointment.service}</div>
                 </div>
                 <div>
                   <div className="text-[10px] text-[var(--ink-light)] mb-1">Preferred Date</div>
@@ -138,10 +157,28 @@ export default function AppointmentReviewPanel({
                   <div className="text-[10px] text-[var(--ink-light)] mb-1">Preferred Time</div>
                   <div className="font-bold">{appointment.preferredTime}</div>
                 </div>
+                {parsed.format && (
+                  <div>
+                    <div className="text-[10px] text-[var(--ink-light)] mb-1">Meeting Format</div>
+                    <div className="font-bold capitalize">{parsed.format}</div>
+                  </div>
+                )}
+                {parsed.context && (
+                  <div>
+                    <div className="text-[10px] text-[var(--ink-light)] mb-1">Project Context</div>
+                    <div className="font-bold capitalize">{parsed.context}</div>
+                  </div>
+                )}
+                {parsed.location && (
+                  <div className="col-span-2">
+                    <div className="text-[10px] text-[var(--ink-light)] mb-1">Project Location</div>
+                    <div className="font-bold">{parsed.location}</div>
+                  </div>
+                )}
                 <div className="col-span-2">
-                  <div className="text-[10px] text-[var(--ink-light)] mb-1">Client Notes</div>
-                  <div className="bg-white p-3 rounded border border-[rgba(0,0,0,0.05)] text-xs italic">
-                    "{appointment.notes || 'No notes provided.'}"
+                  <div className="text-[10px] text-[var(--ink-light)] mb-1">Description / Project Scope</div>
+                  <div className="bg-white p-3 rounded border border-[rgba(0,0,0,0.05)] text-xs italic whitespace-pre-line leading-relaxed">
+                    "{parsed.description || 'No description provided.'}"
                   </div>
                 </div>
               </div>
@@ -164,13 +201,13 @@ export default function AppointmentReviewPanel({
               <div className="relative pl-4 border-l-2 border-[var(--stone-dark)] space-y-4 my-6">
                 <div className="relative">
                   <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--stone-dark)] border-2 border-[var(--cream)]" />
-                  <div className="text-[10px] text-[var(--ink-light)]">{formatAppointmentDate(appointment.createdAt)}</div>
+                  <div className="text-[10px] text-[var(--ink-light)]">{appointment.createdAt ? formatAppointmentDate(appointment.createdAt) : 'Initial'}</div>
                   <div className="text-xs font-bold">Request Submitted</div>
                 </div>
                 {appointment.approvedBy && (
                   <div className="relative">
                     <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--green)] border-2 border-[var(--cream)]" />
-                    <div className="text-[10px] text-[var(--ink-light)]">{formatAppointmentDate(appointment.approvedAt)}</div>
+                    <div className="text-[10px] text-[var(--ink-light)]">{appointment.approvedAt ? formatAppointmentDate(appointment.approvedAt) : ''}</div>
                     <div className="text-xs font-bold">Approved by {appointment.approvedBy}</div>
                   </div>
                 )}
@@ -239,6 +276,18 @@ export default function AppointmentReviewPanel({
               </button>
             )}
           </div>
+
+          {onDelete && (
+            <button 
+              onClick={() => {
+                onDelete(appointment.id);
+                handleClose();
+              }}
+              className="w-full bg-[var(--red-light)] text-[var(--red)] border border-[var(--red)] py-2 rounded text-xs font-bold hover:bg-[var(--red)] hover:text-white transition-all mt-2"
+            >
+              Delete Appointment
+            </button>
+          )}
         </div>
       </div>
     </div>

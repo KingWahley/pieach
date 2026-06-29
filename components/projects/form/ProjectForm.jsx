@@ -44,7 +44,11 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
     category: initialData?.category || '',
     subtitle: initialData?.subtitle || '',
     description: initialData?.description || '',
-    image: initialData?.image || ''
+    image: initialData?.image || '',
+    siteArea: initialData?.specs?.siteArea || '',
+    builtArea: initialData?.specs?.builtArea || '',
+    leadArchitect: initialData?.specs?.leadArchitect || '',
+    services: initialData?.specs?.services || ''
   });
 
   const [additionalFields, setAdditionalFields] = useState(
@@ -121,8 +125,8 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
 
   const handlePreview = () => {
     const galleryUrls = [
-      ...(galleryFiles.existingImages || []).map(img => typeof img === 'string' ? img : img.url),
-      ...(galleryFiles.newImages || []).map(img => typeof img === 'string' ? img : (img.url || img.preview || ''))
+      ...(galleryFiles.existingImages || []).map(img => typeof img === 'string' ? img : (img.url || img.previewUrl || '')),
+      ...(galleryFiles.newImages || []).map(img => typeof img === 'string' ? img : (img.url || img.previewUrl || img.preview || ''))
     ].filter(Boolean);
 
     const previewProjectData = {
@@ -135,10 +139,10 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
       specs: {
         projectType: formData.category,
         status: formData.status,
-        siteArea: initialData?.specs?.siteArea || '1,200 sqm',
-        builtArea: initialData?.specs?.builtArea || '850 sqm',
-        leadArchitect: initialData?.specs?.leadArchitect || 'Arch. Segun Adetokunbo',
-        services: initialData?.specs?.services || 'Architecture, Construction, Interior Design'
+        siteArea: formData.siteArea || '',
+        builtArea: formData.builtArea || '',
+        leadArchitect: formData.leadArchitect || '',
+        services: formData.services || ''
       }
     };
 

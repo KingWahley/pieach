@@ -23,7 +23,16 @@ export function useFilterSort(data = [], initialFilters = {}, initialSort = { ke
     // Filter
     Object.entries(filters).forEach(([key, value]) => {
       if (value && value !== 'all') {
-        result = result.filter((item) => item[key] === value);
+        result = result.filter((item) => {
+          if (key === 'status') {
+            const itemStatus = String(item[key] || '').toLowerCase();
+            const filterStatus = String(value).toLowerCase();
+            return itemStatus === filterStatus || 
+                   (filterStatus === 'applied' && itemStatus === 'new') ||
+                   (filterStatus === 'applied' && itemStatus === 'applied');
+          }
+          return item[key] === value;
+        });
       }
     });
 

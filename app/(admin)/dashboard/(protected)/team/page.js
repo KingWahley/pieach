@@ -32,6 +32,7 @@ export default function TeamPage() {
   );
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
   const pageSize = 7;
   
   const [selectedMember, setSelectedMember] = useState(null);
@@ -47,8 +48,24 @@ export default function TeamPage() {
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     id: null,
-    name: ''
+    name: '',
+    isBulk: false
   });
+
+  const toggleSelect = (id, e) => {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedData.map(m => m.id));
+    }
+  };
 
   const handleDragStart = (e, index) => {
     setDraggedIndex(index);
@@ -116,21 +133,50 @@ export default function TeamPage() {
     setConfirmModal({
       isOpen: true,
       id,
-      name
+      name,
+      isBulk: false
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    setConfirmModal({
+      isOpen: true,
+      id: null,
+      name: `${selectedIds.length} profiles`,
+      isBulk: true
     });
   };
 
   const handleConfirmDelete = () => {
-    deleteItem(confirmModal.id);
-    setConfirmModal({ isOpen: false, id: null, name: '' });
+    if (confirmModal.isBulk) {
+      selectedIds.forEach(id => deleteItem(id));
+      setSelectedIds([]);
+    } else {
+      deleteItem(confirmModal.id);
+    }
+    setConfirmModal({ isOpen: false, id: null, name: '', isBulk: false });
   };
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
   }, [searchQuery, filters]);
   
   const [view, setView] = useViewMode();
+
+  const getLastUpdateDate = () => {
+    if (!data || data.length === 0) return 'N/A';
+    const dates = data
+      .map(m => m.updated_at || m.created_at || m.date)
+      .filter(Boolean)
+      .map(d => new Date(d));
+    if (dates.length === 0) {
+      return 'N/A';
+    }
+    const maxDate = new Date(Math.max(...dates));
+    return maxDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   const stats = [
     { 
@@ -145,7 +191,7 @@ export default function TeamPage() {
     },
     { 
       label: 'Last update', 
-      value: 'Apr 29, 2026', 
+      value: getLastUpdateDate(), 
       subtext: 'Most recently edited profile' 
     },
   ];
@@ -158,6 +204,7 @@ export default function TeamPage() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    setSelectedIds([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -172,14 +219,16 @@ export default function TeamPage() {
           <h1 className="text-3xl font-bold text-[var(--burgundy)] mb-1">Team List</h1>
           <p className="text-[13px] text-[var(--ink-light)]">Add, edit, view, and delete team member profiles displayed on the Pieach website.</p>
         </div>
-        <button 
-          className="primary-btn" 
-          onClick={() => router.push('/dashboard/team/new')}
-          style={{ background: 'var(--burgundy)', color: 'var(--white)', padding: '10px 22px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '600', transition: 'all 0.2s' }}
-        >
-          <Icons.plus style={{ width: '16px', height: '16px', strokeWidth: '3' }} />
-          Add Team Member
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button 
+            className="primary-btn" 
+            onClick={() => router.push('/dashboard/team/new')}
+            style={{ background: 'var(--burgundy)', color: 'var(--white)', padding: '10px 22px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '600', transition: 'all 0.2s' }}
+          >
+            <Icons.plus style={{ width: '16px', height: '16px', strokeWidth: '3' }} />
+            Add Team Member
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats Row - Updated to 3 cards */}
@@ -226,7 +275,16 @@ export default function TeamPage() {
             />
           </div>
           
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {selectedIds.length > 0 && (
+              <button 
+                onClick={handleBulkDeleteClick}
+                className="secondary-btn"
+                style={{ color: 'var(--red)', borderColor: 'var(--red)', background: 'transparent', padding: '10px 14px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', height: '41px' }}
+              >
+                Delete Selected ({selectedIds.length})
+              </button>
+            )}
             <select 
               value={filters.role}
               onChange={(e) => updateFilter('role', e.target.value)}
@@ -296,6 +354,14 @@ export default function TeamPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1.5px solid var(--stone)' }}>
+                <th style={{ width: '40px', padding: '14px 20px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                    onChange={toggleSelectAll}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </th>
                 <th style={{ textAlign: 'left', padding: '14px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Team Member</th>
                 <th style={{ textAlign: 'left', padding: '14px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Designation</th>
                 <th style={{ textAlign: 'left', padding: '14px 20px', fontSize: '10px', fontWeight: '800', color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Qualifications</th>
@@ -307,6 +373,14 @@ export default function TeamPage() {
             <tbody>
               {paginatedData.map((member) => (
                 <tr key={member.id} className="team-row" style={{ borderBottom: '1px solid var(--stone)', transition: 'background 0.2s' }}>
+                  <td style={{ padding: '16px 20px', width: '40px' }} onClick={(e) => toggleSelect(member.id, e)}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(member.id)}
+                      readOnly
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </td>
                   <td style={{ padding: '16px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--burgundy)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800', flexShrink: 0 }}>
@@ -369,7 +443,34 @@ export default function TeamPage() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px', marginBottom: '24px' }}>
             {paginatedData.map((member) => (
-              <div key={member.id} className="team-card-p" style={{ background: 'var(--white)', border: '1.5px solid var(--stone)', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => handlePreview(member)}>
+              <div key={member.id} className="team-card-p" style={{ background: 'var(--white)', border: '1.5px solid var(--stone)', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', position: 'relative' }} onClick={() => handlePreview(member)}>
+                {/* Selection Checkbox Overlay */}
+                <div 
+                  style={{ 
+                    position: 'absolute', 
+                    top: '12px', 
+                    left: '12px', 
+                    zIndex: 10,
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => toggleSelect(member.id, e)}
+                >
+                  <div style={{ 
+                    width: '20px', 
+                    height: '20px', 
+                    borderRadius: '4px', 
+                    border: '2px solid var(--stone-dark)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    background: selectedIds.includes(member.id) ? 'var(--gold)' : 'rgba(255,255,255,0.85)',
+                    borderColor: selectedIds.includes(member.id) ? 'var(--gold)' : 'var(--stone-dark)',
+                    transition: 'all 0.2s'
+                  }}>
+                    {selectedIds.includes(member.id) && <span style={{ color: 'var(--burgundy)', fontWeight: 'bold', fontSize: '11px' }}>✓</span>}
+                  </div>
+                </div>
+
                 <div style={{ height: '100px', background: 'var(--burgundy)', position: 'relative' }}>
                   <div style={{ position: 'absolute', bottom: '-28px', left: '16px', width: '70px', height: '70px', borderRadius: '50%', background: 'var(--gold)', border: '3px solid var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '800', color: 'var(--burgundy)', overflow: 'hidden' }}>
                     {member.image ? (
@@ -417,9 +518,12 @@ export default function TeamPage() {
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         onConfirm={handleConfirmDelete}
-        title="Delete Team Member"
-        message={`Are you sure you want to delete ${confirmModal.name}? This profile will be permanently removed from the CMS.`}
-        confirmText="Delete Profile"
+        title={confirmModal.isBulk ? "Delete Multiple Profiles" : "Delete Team Member"}
+        message={confirmModal.isBulk 
+          ? `Are you sure you want to permanently delete ${selectedIds.length} selected team profiles? This action cannot be undone.`
+          : `Are you sure you want to delete "${confirmModal.name}"? This profile will be permanently removed from the CMS.`
+        }
+        confirmText={confirmModal.isBulk ? `Delete ${selectedIds.length} Profiles` : "Delete Profile"}
         type="danger"
       />
 

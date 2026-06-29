@@ -312,7 +312,7 @@ export default function EditContactDetailsPage() {
                     <div key={index} className="flex flex-col gap-1.5 relative group">
                       <div className="flex justify-between items-center">
                         <select 
-                          value={link.platform}
+                          value={POPULAR_SOCIALS.some(s => s.value === link.platform) ? link.platform : ''}
                           onChange={(e) => handlePlatformChange(index, e.target.value)}
                           className="text-[10px] font-bold text-[#32171B] uppercase tracking-wider bg-transparent border-b border-transparent focus:border-[#D5A73F] outline-none w-36 cursor-pointer py-0.5"
                         >

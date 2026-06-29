@@ -3,9 +3,26 @@ import { Icons } from '@/components/shared/Icons';
 import AppointmentStatusBadge from './AppointmentStatusBadge';
 import { STATUS_COLORS, APPOINTMENT_STATUSES } from '@/constants/appointmentStatus';
 
+const parseMessage = (msg) => {
+  if (!msg) return { format: '', context: '', location: '', description: 'No details provided.' };
+  
+  const formatMatch = msg.match(/Format:\s*([^\.]+)/i);
+  const contextMatch = msg.match(/Context:\s*([^\.]+)/i);
+  const locationMatch = msg.match(/Location:\s*([^\.]+)/i);
+  const descMatch = msg.match(/Description:\s*(.*)/i);
+
+  return {
+    format: formatMatch ? formatMatch[1].trim() : '',
+    context: contextMatch ? contextMatch[1].trim() : '',
+    location: locationMatch ? locationMatch[1].trim() : '',
+    description: descMatch ? descMatch[1].trim() : msg
+  };
+};
+
 export default function AppointmentCard({ appointment, onView, onApprove, onReject }) {
   const isPending = appointment.status === APPOINTMENT_STATUSES.PENDING;
   const statusColor = STATUS_COLORS[appointment.status] || STATUS_COLORS[APPOINTMENT_STATUSES.PENDING];
+  const parsed = parseMessage(appointment.message);
 
   return (
     <div 
@@ -19,8 +36,19 @@ export default function AppointmentCard({ appointment, onView, onApprove, onReje
         <div className="text-base font-extrabold text-[var(--burgundy)] mb-1">
           {appointment.clientName}
         </div>
-        <p className="text-[12px] text-[var(--ink-light)] leading-relaxed">
-          {appointment.notes || 'No notes provided for this consultation request.'}
+        <div className="text-[10px] text-[var(--ink-light)] font-semibold mb-1 flex items-center gap-1.5">
+          <span>{appointment.service}</span>
+          <span className="text-[var(--stone-dark)]">•</span>
+          <span className={`px-1.5 py-0.5 rounded-full text-[8px] uppercase tracking-wider font-extrabold ${
+            (appointment.message || appointment.notes || '').toLowerCase().includes('physical') 
+              ? 'bg-[var(--gold-light)] text-[var(--gold-dark)] border border-[var(--gold)]/20' 
+              : 'bg-[var(--blue-light)] text-[var(--blue)] border border-[var(--blue)]/20'
+          }`}>
+            {(appointment.message || appointment.notes || '').toLowerCase().includes('physical') ? 'Physical' : 'Remote'}
+          </span>
+        </div>
+        <p className="text-[12px] text-[var(--ink-light)] leading-relaxed italic line-clamp-2">
+          "{parsed.description}"
         </p>
       </div>
       
@@ -59,4 +87,3 @@ export default function AppointmentCard({ appointment, onView, onApprove, onReje
     </div>
   );
 }
-

@@ -279,7 +279,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Social Buttons */}
-                  <div className="flex flex-wrap gap-4 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                     {contactDetails.socialLinks?.map((link, idx) => {
                       if (!link.url) return null;
                       let href = link.url.trim();
@@ -291,16 +291,19 @@ export default function ContactPage() {
                         href = `https://${href}`;
                       }
 
+                      const isPopular = ['instagram', 'linkedin', 'x', 'twitter', 'facebook', 'youtube', 'tiktok', 'pinterest', 'whatsapp'].includes(link.platform?.toLowerCase());
+                      const platformLabel = isPopular ? link.platform.toUpperCase() : 'LINK';
+
                       return (
                         <a 
                           key={idx}
                           href={href} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="flex-grow min-w-[140px] h-12 flex items-center justify-center border border-brand-brown/30 text-[10px] font-bold uppercase tracking-widest text-brand-brown hover:bg-brand-brown hover:text-white transition duration-300 rounded-none gap-2 px-4"
+                          className="w-full h-12 flex items-center justify-center border border-brand-brown/30 text-[10px] font-bold uppercase tracking-widest text-brand-brown hover:bg-brand-brown hover:text-white transition duration-300 rounded-none gap-2 px-4"
                         >
                           <span className="opacity-85">{getSocialIcon(link.platform)}</span>
-                          <span>{link.platform.toUpperCase()}</span>
+                          <span>{platformLabel}</span>
                           <svg className="w-3 h-3 opacity-65" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                           </svg>

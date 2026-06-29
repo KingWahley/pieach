@@ -16,7 +16,7 @@ export default async function CareersPage() {
   const { data: vacancies } = await supabase
     .from('vacancies')
     .select('*')
-    .eq('status', 'Open');
+    .eq('status', 'published');
 
   return <CareersPageContent vacancies={vacancies || []} />;
 }

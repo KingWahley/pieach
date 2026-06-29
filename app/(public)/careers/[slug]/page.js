@@ -13,7 +13,7 @@ export async function generateStaticParams() {
   const { data } = await supabase
     .from('vacancies')
     .select('id')
-    .eq('status', 'Open');
+    .eq('status', 'published');
   
   return (data || []).map((job) => ({
     slug: job.id,
@@ -103,7 +103,7 @@ export default async function CareerDetailsPage({ params }) {
   const { data: allJobs } = await supabase
     .from('vacancies')
     .select('*')
-    .eq('status', 'Open')
+    .eq('status', 'published')
     .neq('id', job.id);
 
   const relatedJobs = (allJobs || []).slice(0, 2);

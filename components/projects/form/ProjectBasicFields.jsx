@@ -65,6 +65,48 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
           })()}
         </select>
       </div>
+
+      <div className="form-field">
+        <label htmlFor="siteArea">Site Area (Optional)</label>
+        <input 
+          id="siteArea" 
+          name="siteArea" 
+          placeholder="e.g. 1,200 sqm" 
+          value={formData.siteArea || ''} 
+          onChange={handleChange} 
+        />
+      </div>
+      <div className="form-field">
+        <label htmlFor="builtArea">Built Area (Optional)</label>
+        <input 
+          id="builtArea" 
+          name="builtArea" 
+          placeholder="e.g. 850 sqm" 
+          value={formData.builtArea || ''} 
+          onChange={handleChange} 
+        />
+      </div>
+      <div className="form-field">
+        <label htmlFor="leadArchitect">Lead Architect (Optional)</label>
+        <input 
+          id="leadArchitect" 
+          name="leadArchitect" 
+          placeholder="e.g. Arch. Segun Adetokunbo" 
+          value={formData.leadArchitect || ''} 
+          onChange={handleChange} 
+        />
+      </div>
+      <div className="form-field">
+        <label htmlFor="services">Services (Optional)</label>
+        <input 
+          id="services" 
+          name="services" 
+          placeholder="e.g. Architecture, Interior Design" 
+          value={formData.services || ''} 
+          onChange={handleChange} 
+        />
+      </div>
+
       <div className="form-field full">
         <label htmlFor="description">Description {errors.description && <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>*Required</span>}</label>
         <textarea 

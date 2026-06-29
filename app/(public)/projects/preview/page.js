@@ -227,51 +227,31 @@ export default function ProjectPreviewPage() {
               {/* Thin horizontal line */}
               <div className="w-full h-[1px] bg-white/20 mb-12" />
 
-              {/* Technical Specs 3-Column Grid without borders */}
+              {/* Technical Specs Grid without borders (Only displaying non-empty specs) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8">
-                
-                {/* Column 1 */}
-                <div className="space-y-10">
-                  <div>
-                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">PROJECT TYPE</span>
-                    <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">{project.specs?.projectType || project.category || 'N/A'}</span>
+                {[
+                  { label: 'PROJECT TYPE', value: project.specs?.projectType || project.category },
+                  { label: 'STATUS', value: project.specs?.status || project.status },
+                  { label: 'SITE AREA', value: project.specs?.siteArea },
+                  { label: 'LEAD ARCHITECT', value: project.specs?.leadArchitect },
+                  { label: 'BUILT AREA', value: project.specs?.builtArea },
+                  { label: 'SERVICES', value: project.specs?.services, isServices: true }
+                ].filter(item => item.value && item.value !== 'N/A' && item.value.trim() !== '').map((item, idx) => (
+                  <div key={idx}>
+                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">{item.label}</span>
+                    {item.isServices ? (
+                      <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">
+                        {item.value.split(",").map((service, idx, arr) => (
+                          <span key={idx} className="block">
+                            {service.trim()}{idx < arr.length - 1 ? "," : ""}
+                          </span>
+                        ))}
+                      </span>
+                    ) : (
+                      <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">{item.value}</span>
+                    )}
                   </div>
-                  <div>
-                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">STATUS</span>
-                    <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">{project.specs?.status || project.status}</span>
-                  </div>
-                </div>
-
-                {/* Column 2 */}
-                <div className="space-y-10">
-                  <div>
-                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">SITE AREA</span>
-                    <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">{project.specs?.siteArea || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">LEAD ARCHITECT</span>
-                    <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">{project.specs?.leadArchitect || 'N/A'}</span>
-                  </div>
-                </div>
-
-                {/* Column 3 */}
-                <div className="space-y-10">
-                  <div>
-                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">BUILT AREA</span>
-                    <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">{project.specs?.builtArea || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-sans font-bold text-[11px] tracking-[0.2em] text-brand-gold uppercase block mb-3">SERVICES</span>
-                    <span className="font-serif text-lg sm:text-xl text-white font-medium block leading-snug">
-                      {(project.specs?.services || '').split(",").map((service, idx, arr) => (
-                        <span key={idx} className="block">
-                          {service.trim()}{idx < arr.length - 1 ? "," : ""}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                </div>
-
+                ))}
               </div>
             </div>
 

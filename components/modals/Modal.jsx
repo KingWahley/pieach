@@ -30,25 +30,29 @@ export default function Modal({ isOpen, onClose, title, children, actions }) {
       );
 
       if (bodyRef.current) {
-        lenisRef.current = new Lenis({
-          wrapper: bodyRef.current,
-          content: bodyRef.current.firstElementChild,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          orientation: 'vertical',
-          gestureOrientation: 'vertical',
-          smoothWheel: true,
-          wheelMultiplier: 1,
-          smoothTouch: false,
-          touchMultiplier: 2,
-          infinite: false,
-        });
+        try {
+          lenisRef.current = new Lenis({
+            wrapper: bodyRef.current,
+            content: bodyRef.current.firstElementChild,
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+            infinite: false,
+          });
 
-        const raf = (time) => {
-          lenisRef.current?.raf(time);
+          const raf = (time) => {
+            lenisRef.current?.raf(time);
+            requestAnimationFrame(raf);
+          };
           requestAnimationFrame(raf);
-        };
-        requestAnimationFrame(raf);
+        } catch (e) {
+          console.warn('Lenis failed to initialize inside Modal:', e);
+        }
       }
     } else if (!isOpen && mounted && backdropRef.current && modalRef.current) {
       document.body.style.overflow = 'auto';
@@ -74,7 +78,7 @@ export default function Modal({ isOpen, onClose, title, children, actions }) {
   if (!mounted || !portalNode) return null;
 
   return createPortal(
-    <div className="modal-backdrop" ref={backdropRef} onClick={onClose} style={{ display: 'none' }}>
+    <div className="modal-backdrop" ref={backdropRef} onClick={onClose} style={{ display: isOpen ? 'flex' : 'none' }}>
       <div className="appointment-modal" ref={modalRef} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{title}</div>

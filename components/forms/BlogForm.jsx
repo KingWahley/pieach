@@ -1,14 +1,75 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '@/components/shared/Icons';
+import { supabase } from '@/lib/supabase/client';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
 import MediaPickerModal from '@/components/modals/MediaPickerModal';
 import { generateBlogContent } from '@/lib/blogUtils';
+import { mediaStore } from '@/lib/store';
+import { uploadFile } from '@/lib/upload';
 
 export default function BlogForm({ initialData, onSave, onCancel, isNew = false }) {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFile(file);
+    }
+  };
+
+  const handleFile = async (file) => {
+    if (!file.type.startsWith('image/')) return;
+    const tempUrl = URL.createObjectURL(file);
+    handleChange('image', tempUrl);
+
+    try {
+      const finalUrl = await uploadFile(file, 'media');
+      handleChange('image', finalUrl);
+
+      // Save to media store (reflect in media library and Supabase)
+      const newAsset = {
+        name: file.name,
+        url: finalUrl,
+        size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+        type: file.type
+      };
+      mediaStore.createItem(newAsset);
+    } catch (err) {
+      console.error('Error uploading/registering media:', err);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFile(file);
+    }
+  };
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation();
+    handleChange('image', '');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const [formData, setFormData] = useState({
     title: '',
     category: 'Architecture',
@@ -162,10 +223,10 @@ export default function BlogForm({ initialData, onSave, onCancel, isNew = false 
             </div>
           </div>
 
-          {/* Featured Image URL */}
+          {/* Featured Image */}
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-bold text-[#32171B] uppercase tracking-wider">FEATURED IMAGE URL</label>
+              <label className="text-[10px] font-bold text-[#32171B] uppercase tracking-wider">Featured Image</label>
               <button 
                 type="button"
                 onClick={() => setIsMediaPickerOpen(true)}
@@ -176,12 +237,49 @@ export default function BlogForm({ initialData, onSave, onCancel, isNew = false 
               </button>
             </div>
             <input 
-              type="text" 
-              placeholder="https://images.unsplash.com/..."
-              value={formData.image}
-              onChange={(e) => handleChange('image', e.target.value)}
-              className="w-full px-4 py-3 bg-[#FAF7F2] border border-[#DDD5C8] rounded-md text-sm outline-none focus:border-[#D5A73F]"
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              onChange={handleFileChange}
             />
+            <div 
+              className={`photo-upload-area ${formData.image ? 'has-image' : ''}`}
+              style={{ 
+                borderColor: isDragging && !formData.image ? 'var(--gold)' : '',
+                backgroundColor: isDragging && !formData.image ? 'var(--gold-light)' : '',
+                aspectRatio: '32/9',
+                padding: '20px 10px',
+              }}
+              onClick={() => { if (!formData.image) fileInputRef.current?.click() }}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {formData.image ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={formData.image} alt="Preview" className="photo-preview" />
+                  <button 
+                    type="button"
+                    className="photo-remove"
+                    onClick={handleRemoveImage}
+                    title="Remove image"
+                  >
+                    ✕
+                  </button>
+                </>
+              ) : (
+                <>
+                  <svg className="photo-upload-icon text-neutral-400" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <div className="photo-upload-text">Click to upload or drag and drop image here</div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Excerpt */}

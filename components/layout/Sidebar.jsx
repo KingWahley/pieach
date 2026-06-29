@@ -20,6 +20,32 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState({});
   const sidebarRef = useRef(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('sidebar-collapsed');
+      if (stored === 'true') {
+        setIsCollapsed(true);
+        document.body.classList.add('sidebar-collapsed');
+      }
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sidebar-collapsed', String(next));
+        if (next) {
+          document.body.classList.add('sidebar-collapsed');
+        } else {
+          document.body.classList.remove('sidebar-collapsed');
+        }
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!sidebarRef.current) return;
@@ -83,7 +109,7 @@ export default function Sidebar() {
   const renderNavGroup = (items, sectionLabel) => {
     return (
       <div className="sidebar-section">
-        {sectionLabel && <div className="sidebar-label">{sectionLabel}</div>}
+        {sectionLabel && !isCollapsed && <div className="sidebar-label">{sectionLabel}</div>}
         {items.map((item) => {
           const Icon = Icons[item.icon];
           const isActive = pathname === item.href;
@@ -93,38 +119,46 @@ export default function Sidebar() {
 
           if (hasSubmenu) {
             return (
-              <div key={item.label} className={`nav-group ${effectiveOpen ? 'open' : ''}`}>
+              <div key={item.label} className={`nav-group ${effectiveOpen && !isCollapsed ? 'open' : ''}`}>
                 <button
                   type="button"
                   className={`nav-item nav-parent ${isSubmenuActive ? 'active' : ''}`}
-                  onClick={() => toggleGroup(item.label, effectiveOpen)}
-                  aria-expanded={effectiveOpen}
+                  onClick={() => !isCollapsed && toggleGroup(item.label, effectiveOpen)}
+                  aria-expanded={effectiveOpen && !isCollapsed}
+                  title={isCollapsed ? item.label : undefined}
                 >
                   {Icon && <Icon className="nav-icon" />}
-                  <span className="nav-label">{item.label}</span>
-                  {getDynamicBadge(item.label, item.badge) && <span className="nav-badge">{getDynamicBadge(item.label, item.badge)}</span>}
-                  <span className="nav-chevron">⌄</span>
+                  {!isCollapsed && <span className="nav-label">{item.label}</span>}
+                  {getDynamicBadge(item.label, item.badge) && !isCollapsed && <span className="nav-badge">{getDynamicBadge(item.label, item.badge)}</span>}
+                  {!isCollapsed && <span className="nav-chevron">⌄</span>}
                 </button>
-                <div className="submenu" style={{ display: effectiveOpen ? 'flex' : 'none' }}>
-                  {item.submenu.map((sub) => (
-                    <Link
-                      key={sub.label}
-                      href={sub.href}
-                      className={`submenu-item ${pathname === sub.href ? 'active-sub' : ''}`}
-                    >
-                      {sub.label}
-                    </Link>
-                  ))}
-                </div>
+                {effectiveOpen && !isCollapsed && (
+                  <div className="submenu" style={{ display: 'flex' }}>
+                    {item.submenu.map((sub) => (
+                      <Link
+                        key={sub.label}
+                        href={sub.href}
+                        className={`submenu-item ${pathname === sub.href ? 'active-sub' : ''}`}
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           }
 
           return (
-            <Link key={item.label} href={item.href || '#'} className={`nav-item ${isActive ? 'active' : ''}`}>
+            <Link 
+              key={item.label} 
+              href={item.href || '#'} 
+              className={`nav-item ${isActive ? 'active' : ''}`}
+              title={isCollapsed ? item.label : undefined}
+            >
               {Icon && <Icon className="nav-icon" />}
-              <span className="nav-label">{item.label}</span>
-              {getDynamicBadge(item.label, item.badge) && <span className="nav-badge">{getDynamicBadge(item.label, item.badge)}</span>}
+              {!isCollapsed && <span className="nav-label">{item.label}</span>}
+              {getDynamicBadge(item.label, item.badge) && !isCollapsed && <span className="nav-badge">{getDynamicBadge(item.label, item.badge)}</span>}
             </Link>
           );
         })}
@@ -133,21 +167,33 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar" data-lenis-prevent ref={sidebarRef}>
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`} data-lenis-prevent ref={sidebarRef}>
       <div className="sidebar-inner">
-        <Link href="/dashboard" className="sidebar-logo" style={{ textDecoration: 'none' }}>
-          <div className="logo-mark" style={{ background: 'transparent' }}>
-            <img 
-              src="/images/logo.png" 
-              alt="Pieach Logo" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} 
-            />
-          </div>
-          <div>
-            <div className="logo-name">Pieach</div>
-            <div className="logo-sub">Admin CMS</div>
-          </div>
-        </Link>
+        <div className="sidebar-logo">
+          <Link href="/dashboard" className="flex items-center gap-3" style={{ textDecoration: 'none', flex: 1, minWidth: 0 }}>
+            <div className="logo-mark" style={{ background: 'transparent' }}>
+              <img 
+                src="/images/mainlogo2.png" 
+                alt="Pieach Logo" 
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} 
+              />
+            </div>
+            {!isCollapsed && (
+              <div>
+                <div className="logo-name">Pieach</div>
+                <div className="logo-sub">Admin CMS</div>
+              </div>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="sidebar-toggle-btn"
+            title={isCollapsed ? "Expand Sidebar" : "Minimize Sidebar"}
+          >
+            {isCollapsed ? <Icons.chevronRight className="w-4 h-4" /> : <Icons.chevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
 
         {renderNavGroup(MAIN_NAV, 'Main')}
         {renderNavGroup(CAREERS_NAV, 'Careers')}
@@ -157,10 +203,12 @@ export default function Sidebar() {
 
         <div className="sidebar-footer">
           <div className="avatar-circle">AD</div>
-          <div>
-            <div className="avatar-name">Admin</div>
-            <div className="avatar-role">Super Admin</div>
-          </div>
+          {!isCollapsed && (
+            <div>
+              <div className="avatar-name">Admin</div>
+              <div className="avatar-role">Super Admin</div>
+            </div>
+          )}
         </div>
       </div>
     </aside>

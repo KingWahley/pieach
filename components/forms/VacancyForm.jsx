@@ -221,6 +221,19 @@ export default function VacancyForm({ initialData, onSave, onCancel, isNew = fal
 
         {/* Form Actions */}
         <div style={{ padding: '14px 16px', borderTop: '1px solid var(--stone)', background: 'var(--cream)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          {onCancel && (
+            <button 
+              type="button"
+              onClick={onCancel}
+              style={{ 
+                padding: '10px 14px', border: '1px solid var(--stone-dark)', borderRadius: '6px', 
+                background: 'transparent', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer',
+                color: 'var(--ink-mid)', fontFamily: 'Verdana, sans-serif'
+              }}
+            >
+              Cancel
+            </button>
+          )}
           <button 
             onClick={() => handleSave(false)}
             style={{ 

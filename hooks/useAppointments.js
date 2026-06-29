@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import { useStore } from '@/hooks/useStore';
 import { appointmentsStore } from '@/lib/store';
 import { filterAppointments, calculateKPIs, convertToCalendarEvents } from '@/utils/appointmentHelpers';
+import { sendApprovalEmail } from '@/utils/emailHelpers';
 
 export function useAppointments() {
-  const { data: appointments, updateItem } = useStore(appointmentsStore);
+  const { data: appointments, updateItem, deleteItem } = useStore(appointmentsStore);
   
   const [filterConfig, setFilterConfig] = useState({
     status: 'All',
@@ -44,7 +45,19 @@ export function useAppointments() {
       updatePayload.rejectedBy = 'Admin User';
     }
 
+    const appt = appointments.find(a => a.id === id);
     updateItem(id, updatePayload);
+
+    if (newStatus === 'Approved' && appt) {
+      sendApprovalEmail({ ...appt, ...updatePayload });
+    }
+  };
+
+  const deleteAppointment = (id) => {
+    deleteItem(id);
+    if (selectedAppointmentId === id) {
+      setSelectedAppointmentId(null);
+    }
   };
 
   return {
@@ -60,5 +73,6 @@ export function useAppointments() {
     selectedAppointmentId,
     setSelectedAppointmentId,
     handleStatusChange,
+    deleteAppointment,
   };
 }

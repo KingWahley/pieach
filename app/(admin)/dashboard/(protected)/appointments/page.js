@@ -9,6 +9,7 @@ import AppointmentCalendar from '@/components/appointments/AppointmentCalendar';
 import AppointmentReviewPanel from '@/components/appointments/AppointmentReviewPanel';
 import { Icons } from '@/components/shared/Icons';
 import Pagination from '@/components/shared/Pagination';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 export default function AppointmentsListPage() {
   const {
@@ -21,11 +22,23 @@ export default function AppointmentsListPage() {
     selectedAppointment,
     selectedAppointmentId,
     setSelectedAppointmentId,
-    handleStatusChange
+    handleStatusChange,
+    deleteAppointment
   } = useAppointments();
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;
+
+  // Bulk Selection State
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    isBulk: false,
+    targetId: null,
+    clientName: ''
+  });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAppointments.length / pageSize);
@@ -36,10 +49,67 @@ export default function AppointmentsListPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Reset page when filters change
+  // Reset page & selections when filters change
   React.useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
   }, [filterConfig]);
+
+  // Bulk selection handlers
+  const handleToggleSelect = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === paginatedAppointments.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedAppointments.map(a => a.id));
+    }
+  };
+
+  // Status updates
+  const handleBulkStatusChange = (newStatus) => {
+    selectedIds.forEach(id => {
+      handleStatusChange(id, newStatus);
+    });
+    setSelectedIds([]);
+  };
+
+  // Deletions
+  const handleDeleteClick = (id) => {
+    const appt = filteredAppointments.find(a => a.id === id);
+    setConfirmModal({
+      isOpen: true,
+      isBulk: false,
+      targetId: id,
+      clientName: appt ? appt.clientName : 'this appointment'
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    setConfirmModal({
+      isOpen: true,
+      isBulk: true,
+      targetId: null,
+      clientName: ''
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmModal.isBulk) {
+      selectedIds.forEach(id => deleteAppointment(id));
+      setSelectedIds([]);
+    } else if (confirmModal.targetId) {
+      deleteAppointment(confirmModal.targetId);
+      if (selectedIds.includes(confirmModal.targetId)) {
+        setSelectedIds(prev => prev.filter(id => id !== confirmModal.targetId));
+      }
+    }
+    setConfirmModal({ isOpen: false, isBulk: false, targetId: null, clientName: '' });
+  };
 
   return (
     <DashboardLayout 
@@ -62,11 +132,45 @@ export default function AppointmentsListPage() {
           </div>
         </div>
 
-
         <AppointmentFilters 
           filterConfig={filterConfig}
           setFilterConfig={setFilterConfig}
         />
+
+        {/* Bulk Action Controls */}
+        {selectedIds.length > 0 && (
+          <div className="flex items-center justify-between bg-[var(--cream-light)] p-4 rounded-lg border border-[var(--gold)] mb-6 animate-[fadeIn_0.2s_ease-out]">
+            <div className="text-xs text-[var(--ink-mid)] font-bold">
+              {selectedIds.length} appointments selected
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => handleBulkStatusChange('Approved')}
+                className="secondary-btn"
+                style={{ borderColor: 'var(--green)', color: 'var(--green)', padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Icons.check style={{ width: '14px', height: '14px' }} />
+                Approve Selected
+              </button>
+              <button 
+                onClick={() => handleBulkStatusChange('Rejected')}
+                className="secondary-btn"
+                style={{ borderColor: 'var(--red)', color: 'var(--red)', padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Icons.close style={{ width: '14px', height: '14px' }} />
+                Reject Selected
+              </button>
+              <button 
+                onClick={handleBulkDeleteClick}
+                className="primary-btn bg-[var(--red)] border-[var(--red)] text-white"
+                style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Icons.trash style={{ width: '14px', height: '14px' }} />
+                Delete Selected
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="relative">
           {viewMode === 'list' ? (
@@ -77,6 +181,10 @@ export default function AppointmentsListPage() {
                 selectedAppointmentId={selectedAppointmentId}
                 onStatusChange={handleStatusChange}
                 onToggleView={setViewMode}
+                onDeleteAppointment={handleDeleteClick}
+                selectedIds={selectedIds}
+                onSelectAll={handleSelectAll}
+                onToggleSelect={handleToggleSelect}
               />
               <Pagination 
                 currentPage={currentPage}
@@ -95,11 +203,24 @@ export default function AppointmentsListPage() {
           )}
         </div>
 
-
         <AppointmentReviewPanel 
           appointment={selectedAppointment}
           onClose={() => setSelectedAppointmentId(null)}
           onStatusChange={handleStatusChange}
+          onDelete={handleDeleteClick}
+        />
+
+        <ConfirmationModal 
+          isOpen={confirmModal.isOpen}
+          onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+          onConfirm={handleConfirmDelete}
+          title={confirmModal.isBulk ? "Delete Multiple Appointments" : "Delete Appointment"}
+          message={confirmModal.isBulk 
+            ? `Are you sure you want to permanently delete the ${selectedIds.length} selected appointments? This action cannot be undone.`
+            : `Are you sure you want to delete the appointment request for "${confirmModal.clientName}"? This action cannot be undone.`
+          }
+          confirmText={confirmModal.isBulk ? `Delete ${selectedIds.length} Appointments` : "Delete Appointment"}
+          type="danger"
         />
       </div>
     </DashboardLayout>

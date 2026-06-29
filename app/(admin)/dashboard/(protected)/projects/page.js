@@ -25,19 +25,37 @@ export default function ProjectsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
   const pageSize = 7;
 
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     id: null,
-    title: ''
+    title: '',
+    isBulk: false
   });
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
   }, [searchQuery, filters]);
+
+  const toggleSelect = (id, e) => {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedData.map(p => p.id));
+    }
+  };
 
   const handlePreview = (project) => {
     setSelectedProject({
@@ -54,13 +72,28 @@ export default function ProjectsPage() {
     setConfirmModal({
       isOpen: true,
       id,
-      title
+      title,
+      isBulk: false
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    setConfirmModal({
+      isOpen: true,
+      id: null,
+      title: `${selectedIds.length} projects`,
+      isBulk: true
     });
   };
 
   const handleConfirmDelete = () => {
-    deleteItem(confirmModal.id);
-    setConfirmModal({ isOpen: false, id: null, title: '' });
+    if (confirmModal.isBulk) {
+      selectedIds.forEach(id => deleteItem(id));
+      setSelectedIds([]);
+    } else {
+      deleteItem(confirmModal.id);
+    }
+    setConfirmModal({ isOpen: false, id: null, title: '', isBulk: false });
   };
 
   const filterOptions = [
@@ -74,6 +107,7 @@ export default function ProjectsPage() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    setSelectedIds([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -102,6 +136,15 @@ export default function ProjectsPage() {
         currentFilter={filters.status || 'all'}
         onFilterChange={(v) => updateFilter('status', v)}
       >
+        {selectedIds.length > 0 && (
+          <button 
+            onClick={handleBulkDeleteClick}
+            className="secondary-btn"
+            style={{ color: 'var(--red)', borderColor: 'var(--red)', background: 'transparent', padding: '10px 14px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', height: '38px' }}
+          >
+            Delete Selected ({selectedIds.length})
+          </button>
+        )}
         <select className="filter-select" value={filters.category || 'all'} onChange={(e) => updateFilter('category', e.target.value)}>
           {filterOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
@@ -122,6 +165,14 @@ export default function ProjectsPage() {
             <table className="project-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
+                  <th style={{ width: '40px', padding: '13px 16px', borderBottom: '1px solid var(--stone-dark)' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                      onChange={toggleSelectAll}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </th>
                   <th style={{ textAlign: 'left', padding: '13px 16px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--burgundy)', borderBottom: '1px solid var(--stone-dark)' }}>Project Title</th>
                   <th style={{ textAlign: 'left', padding: '13px 16px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--burgundy)', borderBottom: '1px solid var(--stone-dark)' }}>Location</th>
                   <th style={{ textAlign: 'left', padding: '13px 16px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--burgundy)', borderBottom: '1px solid var(--stone-dark)' }}>Status</th>
@@ -133,6 +184,14 @@ export default function ProjectsPage() {
               <tbody>
                 {paginatedData.map((project) => (
                   <tr key={project.id} style={{ borderBottom: '1px solid var(--stone)' }} className="table-row-hover">
+                    <td style={{ padding: '14px 16px', verticalAlign: 'middle' }} onClick={(e) => toggleSelect(project.id, e)}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.includes(project.id)}
+                        readOnly
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </td>
                     <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--stone-dark)' }}>
@@ -205,7 +264,34 @@ export default function ProjectsPage() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px', marginBottom: '24px' }}>
             {paginatedData.map((project) => (
-              <div key={project.id} style={{ border: '1px solid var(--stone-dark)', borderRadius: '8px', background: 'var(--white)', overflow: 'hidden' }}>
+              <div key={project.id} style={{ border: '1px solid var(--stone-dark)', borderRadius: '8px', background: 'var(--white)', overflow: 'hidden', position: 'relative' }}>
+                {/* Selection Checkbox Overlay */}
+                <div 
+                  style={{ 
+                    position: 'absolute', 
+                    top: '12px', 
+                    left: '12px', 
+                    zIndex: 10,
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => toggleSelect(project.id, e)}
+                >
+                  <div style={{ 
+                    width: '20px', 
+                    height: '20px', 
+                    borderRadius: '4px', 
+                    border: '2px solid var(--stone-dark)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    background: selectedIds.includes(project.id) ? 'var(--gold)' : 'rgba(255,255,255,0.85)',
+                    borderColor: selectedIds.includes(project.id) ? 'var(--gold)' : 'var(--stone-dark)',
+                    transition: 'all 0.2s'
+                  }}>
+                    {selectedIds.includes(project.id) && <span style={{ color: 'var(--burgundy)', fontWeight: 'bold', fontSize: '11px' }}>✓</span>}
+                  </div>
+                </div>
+
                 <div style={{ 
                   height: '160px', 
                   backgroundImage: `url(${project.image})`, 
@@ -280,9 +366,12 @@ export default function ProjectsPage() {
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         onConfirm={handleConfirmDelete}
-        title="Delete Project"
-        message={`Are you sure you want to delete "${confirmModal.title}"? This project and its associated media will be permanently removed.`}
-        confirmText="Delete Project"
+        title={confirmModal.isBulk ? "Delete Multiple Projects" : "Delete Project"}
+        message={confirmModal.isBulk 
+          ? `Are you sure you want to permanently delete ${selectedIds.length} selected projects? This action cannot be undone and will remove all associated media files.`
+          : `Are you sure you want to delete "${confirmModal.title}"? This project and its associated media will be permanently removed.`
+        }
+        confirmText={confirmModal.isBulk ? `Delete ${selectedIds.length} Projects` : "Delete Project"}
         type="danger"
       />
     </DashboardLayout>

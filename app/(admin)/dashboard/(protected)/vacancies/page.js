@@ -112,7 +112,7 @@ export default function VacanciesPage() {
 
   // Get applications for the reviewed vacancy
   const vacancyApps = reviewVacancy 
-    ? applications.filter(app => app.jobId === reviewVacancy.id)
+    ? applications.filter(app => app.vacancyId === reviewVacancy.id || app.jobId === reviewVacancy.id)
     : [];
 
   return (
@@ -181,7 +181,7 @@ export default function VacanciesPage() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginBottom: '32px' }}>
             {paginatedData.map((vacancy) => {
-              const count = applications.filter(app => app.jobId === vacancy.id).length;
+              const count = applications.filter(app => app.vacancyId === vacancy.id || app.jobId === vacancy.id).length;
               return (
                 <div key={vacancy.id} className="card" style={{ background: 'white', border: '1px solid var(--stone-dark)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ padding: '24px', flex: 1 }}>
@@ -234,7 +234,6 @@ export default function VacanciesPage() {
             <div className="card" style={{ background: 'white', border: '1px solid var(--stone-dark)', borderRadius: '8px', overflow: 'hidden' }}>
               <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--stone)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--cream)' }}>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.08em', color: 'var(--ink)' }}>VACANCY LIST</span>
-                <button style={{ background: 'none', border: 'none', color: 'var(--gold-dark)', fontSize: '11px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Manage departments ›</button>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
@@ -251,7 +250,7 @@ export default function VacanciesPage() {
                   </thead>
                   <tbody>
                     {paginatedData.map((vacancy) => {
-                      const count = applications.filter(app => app.jobId === vacancy.id).length;
+                      const count = applications.filter(app => app.vacancyId === vacancy.id || app.jobId === vacancy.id).length;
                       return (
                         <tr 
                           key={vacancy.id} 
@@ -347,9 +346,8 @@ export default function VacanciesPage() {
                   </div>
 
                   <div style={{ border: '1px solid var(--stone-dark)', borderRadius: '8px', background: 'var(--white)', padding: '20px' }}>
-                    <div style={{ fontSize: '10px', color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 'bold', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>Recent Applications</span>
-                      <Link href={`/job-applications?vacancy=${reviewVacancy.id}`} style={{ color: 'var(--gold-dark)', fontSize: '11px', fontWeight: 'bold', textDecoration: 'underline' }}>View All ({vacancyApps.length})</Link>
+                    <div style={{ fontSize: '10px', color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 'bold', marginBottom: '16px' }}>
+                      Recent Applications
                     </div>
                     {vacancyApps.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

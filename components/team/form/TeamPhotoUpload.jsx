@@ -3,6 +3,9 @@
 import React, { useRef, useState } from 'react';
 import MediaPickerModal from '@/components/modals/MediaPickerModal';
 import { Icons } from '@/components/shared/Icons';
+import { supabase } from '@/lib/supabase/client';
+import { mediaStore } from '@/lib/store';
+import { uploadFile } from '@/lib/upload';
 
 export default function TeamPhotoUpload({ image, onChange }) {
   const fileInputRef = useRef(null);
@@ -16,13 +19,29 @@ export default function TeamPhotoUpload({ image, onChange }) {
     }
   };
 
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     // Basic validation
     if (!file.type.startsWith('image/')) return;
     
     // Convert to object URL for preview
-    const url = URL.createObjectURL(file);
-    onChange(url);
+    const tempUrl = URL.createObjectURL(file);
+    onChange(tempUrl);
+
+    try {
+      const finalUrl = await uploadFile(file, 'media');
+      onChange(finalUrl);
+
+      // Save to media store (reflect in media library and Supabase)
+      const newAsset = {
+        name: file.name,
+        url: finalUrl,
+        size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+        type: file.type
+      };
+      mediaStore.createItem(newAsset);
+    } catch (err) {
+      console.error('Error uploading/registering team photo:', err);
+    }
   };
 
   const handleDragOver = (e) => {

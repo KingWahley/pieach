@@ -240,12 +240,15 @@ export default function BlogPage() {
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center justify-center gap-2">
-                          <button 
-                            onClick={() => handlePreview(post)}
+                          <a 
+                            href={`/blog/${post.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="w-8 h-8 rounded border border-[#DDD5C8] flex items-center justify-center text-[#9A8C82] hover:bg-[#D5A73F] hover:text-white hover:border-[#D5A73F] transition-all"
+                            title="View post on website"
                           >
                             <Icons.eye className="w-4 h-4" />
-                          </button>
+                          </a>
                           {post.status === 'draft' && (
                             <button 
                               onClick={() => handlePublishClick(post)}
@@ -255,7 +258,7 @@ export default function BlogPage() {
                             </button>
                           )}
                           <Link 
-                            href={`/blog/${post.id}/edit`}
+                            href={`/dashboard/blog/${post.id}/edit`}
                             className="w-8 h-8 rounded border border-[#DDD5C8] flex items-center justify-center text-[#9A8C82] hover:bg-[#32171B] hover:text-white hover:border-[#32171B] transition-all"
                           >
                             <Icons.pencil className="w-4 h-4" />

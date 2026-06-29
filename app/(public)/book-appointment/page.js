@@ -1,7 +1,7 @@
 // app/(public)/book-appointment/page.js
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import CTASection from "@/components/sections/CTASection";
 import gsap from "gsap";
@@ -13,12 +13,25 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const MONTHS = [
+  "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+];
+
 export default function BookAppointmentPage() {
   const [selectedService, setSelectedService] = useState("Architectural Consultation");
   const [meetingFormat, setMeetingFormat] = useState("virtual"); // "virtual" or "physical"
   const [projectContext, setProjectContext] = useState("commercial"); // "residential", "commercial", "hospitality"
-  const [selectedDate, setSelectedDate] = useState(5); // October 5th (Sunday)
-  const [selectedTime, setSelectedTime] = useState("11:30 AM");
+  
+  // Dynamic Month and Year Selection
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  
+  const [selectedDate, setSelectedDate] = useState(null); 
+  const [selectedTime, setSelectedTime] = useState("");
+  const [settings, setSettings] = useState(null);
+  const [existingAppointments, setExistingAppointments] = useState([]);
+
   const [formData, setFormData] = useState({
     fullName: "",
     emailAddress: "",
@@ -27,25 +40,202 @@ export default function BookAppointmentPage() {
     description: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [bookedDetails, setBookedDetails] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pageContainerRef = useRef(null);
 
-  const timeSlots = ["09:00 AM", "11:30 AM", "02:00 PM", "04:00 PM"];
+  // Fetch calendar settings & existing appointments on mount
+  useEffect(() => {
+    supabase
+      .from('calendar_settings')
+      .select('settings')
+      .eq('id', 'default')
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!error && data && data.settings) {
+          setSettings(data.settings);
+        }
+      });
 
-  // Calendar cells for October 2026 (starting on Wednesday, Oct 1st)
-  // Mon, Tue are blank offsets
-  const calendarDays = [
-    { day: "", disabled: true },
-    { day: "", disabled: true },
-    { day: 1, disabled: false },
-    { day: 2, disabled: false },
-    { day: 3, disabled: false },
-    { day: 4, disabled: false },
-    { day: 5, disabled: false }, // Oct 5th
-    { day: 6, disabled: false },
-    { day: 7, disabled: false },
-  ];
+    supabase
+      .from('appointments')
+      .select('preferred_date, preferred_time, status')
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const normalized = data.map(item => ({
+            preferredDate: item.preferred_date,
+            preferredTime: item.preferred_time,
+            status: item.status
+          }));
+          setExistingAppointments(normalized);
+        }
+      });
+  }, []);
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(prev => prev - 1);
+    } else {
+      setCurrentMonth(prev => prev - 1);
+    }
+    setSelectedDate(null);
+    setSelectedTime("");
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonth(prev => prev + 1);
+    }
+    setSelectedDate(null);
+    setSelectedTime("");
+  };
+
+  const getDaysInMonth = (year, month) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfWeek = (year, month) => {
+    const day = new Date(year, month, 1).getDay();
+    return day === 0 ? 6 : day - 1;
+  };
+
+  // Generate calendar days dynamically
+  const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+  const startOffset = getFirstDayOfWeek(currentYear, currentMonth);
+
+  const calendarDays = [];
+  for (let i = 0; i < startOffset; i++) {
+    calendarDays.push({ day: "", disabled: true });
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(currentYear, currentMonth, d);
+    const dayOfWeek = dateObj.getDay();
+    const dayShortMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayShort = dayShortMap[dayOfWeek];
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const isPast = dateObj < today;
+    
+    const availableDays = settings?.availableDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const isWeekdayAvailable = availableDays.includes(dayShort);
+    
+    const slots = settings 
+      ? (settings.timeOption === 'same' ? settings.sameTimeSlots : (settings.daySlots?.[dayShort] || []))
+      : [{ start: '09:00', end: '17:00' }]; // Default fallback
+    const hasSlots = slots.length > 0;
+    
+    const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+    const isBlocked = settings?.blockedDates?.some(item => {
+      const bDate = typeof item === 'string' ? item : item?.date;
+      return bDate === dateStr;
+    });
+
+    calendarDays.push({
+      day: d,
+      disabled: isPast || !isWeekdayAvailable || !hasSlots || isBlocked,
+      dateStr
+    });
+  }
+
+  const breakRangeIntoSlots = (startStr, endStr, durationMins) => {
+    const slots = [];
+    if (!startStr || !endStr || !durationMins || durationMins <= 0) return slots;
+    
+    const parseTimeToMins = (tStr) => {
+      const [h, m] = tStr.split(':').map(Number);
+      return h * 60 + m;
+    };
+    
+    const startMins = parseTimeToMins(startStr);
+    const endMins = parseTimeToMins(endStr);
+    
+    let currentMins = startMins;
+    while (currentMins + durationMins <= endMins) {
+      const slotStart = currentMins;
+      const slotEnd = currentMins + durationMins;
+      
+      const minsToTimeStr = (m) => {
+        const hrs = Math.floor(m / 60);
+        const mins = m % 60;
+        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      };
+      
+      slots.push({
+        start: minsToTimeStr(slotStart),
+        end: minsToTimeStr(slotEnd)
+      });
+      
+      currentMins += durationMins;
+    }
+    
+    return slots;
+  };
+
+  const getAvailableSlots = () => {
+    if (!selectedDate) return [];
+    
+    const dateObj = new Date(currentYear, currentMonth, selectedDate);
+    const dayOfWeek = dateObj.getDay();
+    const dayShortMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayShort = dayShortMap[dayOfWeek];
+    
+    const rawSlots = settings
+      ? (settings.timeOption === 'same' ? settings.sameTimeSlots : (settings.daySlots?.[dayShort] || []))
+      : [
+          { id: '1', start: '09:00', end: '10:00' },
+          { id: '2', start: '11:30', end: '12:30' },
+          { id: '3', start: '14:00', end: '15:00' },
+          { id: '4', start: '16:00', end: '17:00' }
+        ];
+
+    // Auto break time blocks into slot intervals
+    const durationMins = settings?.durationPerSlot || 60;
+    const brokenSlots = [];
+    rawSlots.forEach(block => {
+      const subSlots = breakRangeIntoSlots(block.start, block.end, durationMins);
+      brokenSlots.push(...subSlots);
+    });
+
+    const formatTime12 = (t) => {
+      if (!t) return '';
+      const [hStr, mStr] = t.split(':');
+      const h = parseInt(hStr);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+      return `${h12}:${mStr} ${ampm}`;
+    };
+
+    // Filter out already booked slots
+    const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${selectedDate.toString().padStart(2, '0')}`;
+    const dayBookings = existingAppointments.filter(appt => appt.preferredDate === dateStr && appt.status !== 'Rejected' && appt.status !== 'Cancelled');
+
+    return brokenSlots
+      .map(s => `${formatTime12(s.start)} - ${formatTime12(s.end)}`)
+      .filter(slotRangeStr => {
+        const isAlreadyBooked = dayBookings.some(appt => {
+          const apptTime = appt.preferredTime;
+          if (apptTime === slotRangeStr) return true;
+          
+          const [slotStart12] = slotRangeStr.split(' - ');
+          const cleanApptTime = apptTime.replace(/^0/, '').trim();
+          const cleanSlotStart = slotStart12.replace(/^0/, '').trim();
+          
+          if (cleanApptTime === cleanSlotStart) return true;
+          return false;
+        });
+        
+        return !isAlreadyBooked;
+      });
+  };
+
+  const timeSlots = getAvailableSlots();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,6 +244,14 @@ export default function BookAppointmentPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedDate) {
+      alert("Please select an available date from the calendar.");
+      return;
+    }
+    if (!selectedTime) {
+      alert("Please select an available time slot.");
+      return;
+    }
     if (!formData.fullName || !formData.emailAddress || !formData.phoneNumber) {
       alert("Please enter your name, email address, and phone number.");
       return;
@@ -61,7 +259,7 @@ export default function BookAppointmentPage() {
 
     setIsSubmitting(true);
 
-    const formattedDate = `2026-10-${selectedDate.toString().padStart(2, "0")}`;
+    const formattedDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, "0")}-${selectedDate.toString().padStart(2, "0")}`;
 
     try {
       const { error } = await supabase
@@ -82,7 +280,26 @@ export default function BookAppointmentPage() {
       if (error) {
         alert("Booking failed: " + error.message);
       } else {
+        setBookedDetails({
+          clientName: formData.fullName,
+          clientEmail: formData.emailAddress,
+          clientPhone: formData.phoneNumber,
+          projectLocation: formData.projectLocation,
+          preferredDate: formattedDate,
+          preferredTime: selectedTime,
+          service: selectedService,
+          meetingFormat: meetingFormat
+        });
         setSubmitted(true);
+        // Append newly booked slot to local state to prevent double bookings instantly
+        setExistingAppointments(prev => [
+          ...prev,
+          {
+            preferredDate: formattedDate,
+            preferredTime: selectedTime,
+            status: 'Pending'
+          }
+        ]);
         setFormData({
           fullName: "",
           emailAddress: "",
@@ -90,9 +307,6 @@ export default function BookAppointmentPage() {
           phoneNumber: "",
           description: "",
         });
-        setTimeout(() => {
-          setSubmitted(false);
-        }, 6000);
       }
     } catch (err) {
       alert("An error occurred during booking: " + err.message);
@@ -186,9 +400,70 @@ export default function BookAppointmentPage() {
               </p>
             </div>
 
-            {submitted && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-6 py-4 rounded-sm text-xs">
-                <strong>Appointment Request Sent!</strong> We have logged your request for an <strong>{selectedService}</strong> ({meetingFormat === "virtual" ? "Virtual" : "Physical"}) on <strong>October {selectedDate}, 2026</strong> at <strong>{selectedTime}</strong>. Confirmation coordinates will be sent via email.
+            {submitted && bookedDetails && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-md animate-[fadeIn_0.2s_ease-out]">
+                <div 
+                  className="bg-white max-w-sm w-full rounded-sm shadow-2xl overflow-hidden border border-neutral-100 flex flex-col animate-[scaleIn_0.3s_cubic-bezier(0.16,1,0.3,1)]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Modal Header */}
+                  <div className="px-5 py-3.5 border-b border-neutral-100 flex justify-between items-center bg-neutral-50">
+                    <span className="font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">Booking Confirmed</span>
+                    <button 
+                      onClick={() => setSubmitted(false)}
+                      className="text-neutral-400 hover:text-neutral-900 text-lg font-light leading-none cursor-pointer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  
+                  {/* Modal Body */}
+                  <div className="p-5 flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-3 text-emerald-600">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="font-serif text-lg text-neutral-950 mb-1.5">Request Received</h3>
+                    <p className="font-sans text-neutral-500 text-[11px] leading-relaxed max-w-sm font-light">
+                      Thank you! We have logged your request for an <strong>{bookedDetails.service}</strong> ({bookedDetails.meetingFormat === "virtual" ? "Virtual" : "Physical"}) on <strong>{new Date(bookedDetails.preferredDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong> at <strong>{bookedDetails.preferredTime}</strong>.
+                    </p>
+                    
+                    <div className="bg-neutral-50 border border-neutral-100 p-3 rounded-sm w-full mt-4 text-left space-y-2 text-[10px] font-sans">
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Name:</span>
+                        <span className="font-semibold text-neutral-800">{bookedDetails.clientName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Email:</span>
+                        <span className="font-semibold text-neutral-800">{bookedDetails.clientEmail}</span>
+                      </div>
+                      {bookedDetails.projectLocation && (
+                        <div className="flex justify-between">
+                          <span className="text-neutral-400">Location:</span>
+                          <span className="font-semibold text-neutral-800">{bookedDetails.projectLocation}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="mt-4 p-2 bg-emerald-50 border border-emerald-100 rounded-sm text-[10px] text-emerald-800 font-sans font-medium w-full flex items-center justify-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      You will be notified via email at {bookedDetails.clientEmail} once approved.
+                    </div>
+                  </div>
+                  
+                  {/* Modal Footer */}
+                  <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50 flex justify-end">
+                    <button 
+                      onClick={() => setSubmitted(false)}
+                      className="px-5 py-2 bg-brand-gold text-neutral-900 rounded-sm font-bold text-[10px] uppercase tracking-widest hover:bg-neutral-950 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -313,13 +588,29 @@ export default function BookAppointmentPage() {
 
               {/* SELECT DATE */}
               <div className="appt-form-group space-y-2">
-                <div className="flex justify-between items-end">
+                <div className="flex justify-between items-center">
                   <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                     SELECT DATE
                   </label>
-                  <span className="font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
-                    OCTOBER 2026
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      type="button"
+                      onClick={handlePrevMonth}
+                      className="text-brand-gold hover:text-brand-brown font-bold text-xs px-1 cursor-pointer"
+                    >
+                      &larr;
+                    </button>
+                    <span className="font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
+                      {MONTHS[currentMonth]} {currentYear}
+                    </span>
+                    <button 
+                      type="button"
+                      onClick={handleNextMonth}
+                      className="text-brand-gold hover:text-brand-brown font-bold text-xs px-1 cursor-pointer"
+                    >
+                      &rarr;
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="border border-neutral-200/80 rounded-sm overflow-hidden bg-white">
@@ -345,7 +636,7 @@ export default function BookAppointmentPage() {
                           disabled={cell.disabled}
                           onClick={() => cell.day && setSelectedDate(cell.day)}
                           className={`py-3.5 text-[11px] font-medium transition border-r border-b border-neutral-100/70 last:border-r-0 cursor-pointer
-                            ${cell.disabled ? "text-neutral-200 cursor-default" : "text-neutral-700 hover:bg-neutral-50"}
+                            ${cell.disabled ? "text-neutral-200 cursor-default bg-neutral-50/50" : "text-neutral-700 hover:bg-neutral-50"}
                             ${isSelected ? "bg-brand-brown text-brand-gold font-bold hover:bg-brand-brown" : ""}
                           `}
                         >
@@ -362,26 +653,34 @@ export default function BookAppointmentPage() {
                 <label className="block font-sans font-bold text-[9px] uppercase tracking-[0.2em] text-brand-gold">
                   AVAILABLE SLOTS
                 </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {timeSlots.map((time) => {
-                    const isSelected = selectedTime === time;
-                    return (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => setSelectedTime(time)}
-                        className={`py-3 text-center text-[10px] tracking-wider rounded-sm transition font-medium border cursor-pointer
-                          ${isSelected 
-                            ? "bg-brand-brown border-brand-brown text-brand-gold font-bold" 
-                            : "bg-white border-neutral-200 text-neutral-600 hover:border-brand-gold hover:text-brand-gold"
-                          }
-                        `}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
-                </div>
+                {selectedDate ? (
+                  timeSlots.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {timeSlots.map((time) => {
+                        const isSelected = selectedTime === time;
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => setSelectedTime(time)}
+                            className={`py-3 text-center text-[10px] tracking-wider rounded-sm transition font-medium border cursor-pointer
+                              ${isSelected 
+                                ? "bg-brand-brown border-brand-brown text-brand-gold font-bold" 
+                                : "bg-white border-neutral-200 text-neutral-600 hover:border-brand-gold hover:text-brand-gold"
+                              }
+                            `}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-neutral-400 italic py-2">No slots available for this day.</div>
+                  )
+                ) : (
+                  <div className="text-[10px] text-neutral-400 italic py-2">Please select a date from the calendar to view available slots.</div>
+                )}
               </div>
 
               {/* INPUT FIELDS */}
