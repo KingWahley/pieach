@@ -63,9 +63,23 @@ export default async function ProjectDetailsPage({ params }) {
     .neq('status', 'Draft')
     .neq('slug', project.slug);
 
-  const related = (allProjects || []).filter((p) => 
-    p.groups && p.groups.some(g => project.groups && project.groups.includes(g))
-  ).slice(0, 3);
+  const related = (allProjects || []).filter((p) => {
+    // 1. Check if they share any tag in their groups array
+    if (p.groups && p.groups.some(g => project.groups && project.groups.includes(g))) {
+      return true;
+    }
+    
+    // 2. Substring matching of category keywords (e.g., Luxury Residential vs Residential)
+    const cat1 = (project.category || "").toLowerCase();
+    const cat2 = (p.category || "").toLowerCase();
+    if (cat1.includes("residential") && cat2.includes("residential")) return true;
+    if (cat1.includes("commercial") && cat2.includes("commercial")) return true;
+    if (cat1.includes("hospitality") && cat2.includes("hospitality")) return true;
+    if (cat1.includes("planning") && cat2.includes("planning")) return true;
+    if (cat1.includes("sustainable") && cat2.includes("sustainable")) return true;
+    
+    return false;
+  }).slice(0, 3);
 
   if (related.length < 3) {
     const remaining = (allProjects || []).filter(p => !related.some(r => r.slug === p.slug));

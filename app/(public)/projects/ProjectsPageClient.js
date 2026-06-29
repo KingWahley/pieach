@@ -36,7 +36,20 @@ export default function ProjectsPageClient({ initialProjects }) {
 
   const filteredProjects = activeFilter === "all"
     ? initialProjects
-    : initialProjects.filter((p) => p.groups && p.groups.includes(activeFilter));
+    : initialProjects.filter((p) => {
+        if (!p) return false;
+        if (p.groups && p.groups.includes(activeFilter)) return true;
+        
+        // Fallback: match by category text (case-insensitive substring check)
+        const cat = (p.category || "").toLowerCase();
+        if (activeFilter === "residential" && cat.includes("residential")) return true;
+        if (activeFilter === "commercial" && cat.includes("commercial")) return true;
+        if (activeFilter === "hospitality" && cat.includes("hospitality")) return true;
+        if (activeFilter === "masterplanning" && (cat.includes("masterplanning") || cat.includes("master planning") || cat.includes("planning"))) return true;
+        if (activeFilter === "sustainable" && (cat.includes("sustainable") || cat.includes("sustainability"))) return true;
+        
+        return false;
+      });
 
   // 1. Introduction Section Animation
   useGSAP(() => {
