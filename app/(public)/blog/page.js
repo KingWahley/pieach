@@ -240,9 +240,7 @@ export default async function BlogPage() {
             The Pieach Journal is our space for architectural discourse a collective archive of the stories behind the structures.
           </h2>
           <div className="w-16 h-[1px] bg-brand-gold my-8" />
-          <p className="font-sans text-neutral-600 text-sm max-w-xl leading-relaxed font-light">
-            Delve into design philosophies, case studies, and insights from our team. We explore how structure intersects with culture, materials, and environment.
-          </p>
+          
         </div>
       </section>
 
