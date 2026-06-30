@@ -8,6 +8,7 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
   const fileInputRef = useRef(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [sizeErrors, setSizeErrors] = useState([]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -16,8 +17,15 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
   };
 
   const processFiles = async (files) => {
+    const oversizedFiles = files.filter(file => file.size > 20 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      setSizeErrors(oversizedFiles.map(file => `"${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)} MB)`));
+    } else {
+      setSizeErrors([]);
+    }
+
     const validFiles = files.filter(file => {
-      if (file.size > 5 * 1024 * 1024) return false;
+      if (file.size > 20 * 1024 * 1024) return false;
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return false;
       return true;
     });
@@ -137,8 +145,17 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
     <div className="form-field full">
       <div className="flex justify-between items-center mb-2">
         <label className="mb-0">
-          Gallery {errors?.gallery && (
-            <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>{errors.gallery}</span>
+          Gallery{" "}
+          {errors?.gallery && (
+            <span
+              style={{
+                color: "var(--red)",
+                textTransform: "none",
+                marginLeft: "4px",
+              }}
+            >
+              {errors.gallery}
+            </span>
           )}
         </label>
         <button
@@ -151,10 +168,87 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
         </button>
       </div>
 
+      {sizeErrors.length > 0 && (
+        <div
+          style={{
+            marginBottom: "12px",
+            padding: "10px 14px",
+            background: "rgba(220, 38, 38, 0.07)",
+            border: "1px solid rgba(220, 38, 38, 0.3)",
+            borderRadius: "6px",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+            animation: "pgFadeIn 0.3s ease",
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#DC2626"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ flexShrink: 0, marginTop: "2px" }}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <div style={{ flex: 1 }}>
+            <span
+              style={{
+                fontSize: "11px",
+                color: "#DC2626",
+                fontWeight: "bold",
+                display: "block",
+                marginBottom: "2px",
+              }}
+            >
+              Oversized Image File(s) Ignored (Max 20MB limit):
+            </span>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "14px",
+                fontSize: "11px",
+                color: "#DC2626",
+                listStyleType: "disc",
+              }}
+            >
+              {sizeErrors.map((err, i) => (
+                <li key={i} style={{ marginBottom: "2px" }}>
+                  {err}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSizeErrors([])}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#DC2626",
+              fontSize: "16px",
+              cursor: "pointer",
+              lineHeight: 1,
+              padding: "0 4px",
+              marginLeft: "auto",
+            }}
+            aria-label="Dismiss warning"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Drop zone */}
       <div
-        className={`gallery-upload ${isDragActive ? 'drag-active' : ''}`}
-        style={errors?.gallery ? { borderColor: 'var(--red)' } : {}}
+        className={`gallery-upload ${isDragActive ? "drag-active" : ""}`}
+        style={errors?.gallery ? { borderColor: "var(--red)" } : {}}
         onClick={() => fileInputRef.current?.click()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -164,12 +258,20 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
         aria-label="Upload gallery images"
       >
         <svg width="22" height="22" viewBox="0 0 16 16" fill="none">
-          <path d="M3 13h10V5H3v8z" stroke="currentColor" strokeWidth="1.4"/>
-          <path d="M5 9l2-2 2 2 1-1 2 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-          <circle cx="11.5" cy="6.5" r=".8" fill="currentColor"/>
+          <path d="M3 13h10V5H3v8z" stroke="currentColor" strokeWidth="1.4" />
+          <path
+            d="M5 9l2-2 2 2 1-1 2 3"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="11.5" cy="6.5" r=".8" fill="currentColor" />
         </svg>
         <span>Click to upload or drag &amp; drop</span>
-        <span style={{ fontSize: '9px', opacity: 0.7 }}>JPG, PNG, WEBP (Max 5MB)</span>
+        <span style={{ fontSize: "9px", opacity: 0.7 }}>
+          JPG, PNG, WEBP (Max 20MB)
+        </span>
       </div>
 
       <input
@@ -177,41 +279,84 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
         multiple
         accept="image/jpeg, image/png, image/webp"
         ref={fileInputRef}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onChange={handleFileChange}
       />
-
+      
       {/* ── Cover image indicator ────────────────────────────────────────── */}
-      {coverImage && (
-        <div style={{
-          marginTop: '10px',
-          padding: '7px 10px',
-          background: 'var(--gold-light)',
-          border: '1px solid var(--gold-dark)',
-          borderRadius: '6px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '10px',
-          color: 'var(--burgundy)',
-          fontWeight: 'bold'
-        }}>
-          <img src={coverImage} alt="Cover" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--gold-dark)' }} />
+      {coverImage ? (
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "7px 10px",
+            background: "var(--gold-light)",
+            border: "1px solid var(--gold-dark)",
+            borderRadius: "6px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            fontSize: "10px",
+            color: "var(--burgundy)",
+            fontWeight: "bold",
+          }}
+        >
+          <img
+            src={coverImage}
+            alt="Cover"
+            style={{
+              width: 32,
+              height: 32,
+              objectFit: "cover",
+              borderRadius: 4,
+              border: "1px solid var(--gold-dark)",
+            }}
+          />
           <span>⭐ This image is set as the project cover</span>
           <button
             type="button"
-            onClick={() => setCoverImage('')}
-            style={{ marginLeft: 'auto', fontSize: '9px', color: 'var(--ink-light)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
+            onClick={() => setCoverImage("")}
+            style={{
+              marginLeft: "auto",
+              fontSize: "9px",
+              color: "var(--ink-light)",
+              textDecoration: "underline",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             Clear
           </button>
         </div>
-      )}
+      ) : hasImages ? (
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "8px 12px",
+            background: "rgba(213, 167, 63, 0.08)",
+            border: "1px dashed #D5A73F",
+            borderRadius: "6px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            fontSize: "10.5px",
+            color: "var(--burgundy)",
+            fontWeight: "500",
+            animation: "pgFadeIn 0.3s ease",
+          }}
+        >
+          <span>
+            💡 <strong>Important:</strong> Please select one of the images in
+            the gallery below to serve as the <strong>cover image</strong>.
+            Hover over any image and click{" "}
+            <strong>&quot;Set as Cover&quot;</strong>.
+          </span>
+        </div>
+      ) : null}
 
       {/* ── Gallery grid ─────────────────────────────────────────────────── */}
       {hasImages && (
         <div className="gallery-preview-grid">
-
           {/* Existing images (from DB or media library) */}
           {visibleExistingImages.map((img, idx) => {
             const url = img.url || img;
@@ -221,41 +366,73 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                 key={img.id || `ext-${idx}`}
                 className="gallery-preview-item group"
                 style={{
-                  outline: cover ? '2.5px solid #D5A73F' : 'none',
-                  outlineOffset: cover ? '-2px' : '0'
+                  outline: cover ? "2.5px solid #D5A73F" : "none",
+                  outlineOffset: cover ? "-2px" : "0",
                 }}
               >
                 <img src={url} alt={`Gallery image ${idx + 1}`} />
 
                 {/* Cover badge */}
                 {cover && (
-                  <div style={{
-                    position: 'absolute', top: 4, left: 4, zIndex: 20,
-                    background: '#D5A73F', borderRadius: '50%',
-                    width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.3)'
-                  }}>⭐</div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      left: 4,
+                      zIndex: 20,
+                      background: "#D5A73F",
+                      borderRadius: "50%",
+                      width: 18,
+                      height: 18,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    ⭐
+                  </div>
                 )}
 
                 {/* Hover action overlay */}
-                <div style={{
-                  position: 'absolute', inset: 0, zIndex: 15,
-                  background: 'rgba(0,0,0,0.45)',
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center', gap: 4,
-                  opacity: 0, transition: 'opacity 0.18s',
-                  pointerEvents: 'none'
-                }} className="gallery-item-overlay">
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: 15,
+                    background: "rgba(0,0,0,0.45)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                    opacity: 0,
+                    transition: "opacity 0.18s",
+                    pointerEvents: "none",
+                  }}
+                  className="gallery-item-overlay"
+                >
                   {!cover && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setCoverImage(url); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCoverImage(url);
+                      }}
                       style={{
-                        fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase',
-                        letterSpacing: '0.05em', color: '#32171B',
-                        background: '#D5A73F', border: 'none', borderRadius: 4,
-                        padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap',
-                        pointerEvents: 'auto'
+                        fontSize: "8px",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "#32171B",
+                        background: "#D5A73F",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "4px 8px",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        pointerEvents: "auto",
                       }}
                     >
                       ⭐ Set as Cover
@@ -280,29 +457,42 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
           })}
 
           {/* Newly uploaded images */}
-          {(galleryFiles.newImages || []).map(f => {
+          {(galleryFiles.newImages || []).map((f) => {
             const url = f.previewUrl;
             const cover = isCover(url);
-            const isUploading = f.status === 'uploading';
+            const isUploading = f.status === "uploading";
             return (
               <div
                 key={f.id}
                 className="gallery-preview-item group relative overflow-hidden"
                 style={{
-                  outline: cover ? '2.5px solid #D5A73F' : 'none',
-                  outlineOffset: cover ? '-2px' : '0'
+                  outline: cover ? "2.5px solid #D5A73F" : "none",
+                  outlineOffset: cover ? "-2px" : "0",
                 }}
               >
-                <img src={url} alt={f.file?.name || 'New image'} />
+                <img src={url} alt={f.file?.name || "New image"} />
 
                 {/* Cover badge */}
                 {cover && (
-                  <div style={{
-                    position: 'absolute', top: 4, left: 4, zIndex: 20,
-                    background: '#D5A73F', borderRadius: '50%',
-                    width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.3)'
-                  }}>⭐</div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      left: 4,
+                      zIndex: 20,
+                      background: "#D5A73F",
+                      borderRadius: "50%",
+                      width: 18,
+                      height: 18,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    ⭐
+                  </div>
                 )}
 
                 {/* Upload progress overlay */}
@@ -313,41 +503,75 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                       {f.progress || 0}%
                     </span>
                     <div className="w-12 h-1 bg-neutral-800 rounded-full overflow-hidden mt-1.5">
-                      <div className="h-full bg-[#D5A73F] transition-all duration-300" style={{ width: `${f.progress || 0}%` }} />
+                      <div
+                        className="h-full bg-[#D5A73F] transition-all duration-300"
+                        style={{ width: `${f.progress || 0}%` }}
+                      />
                     </div>
                   </div>
                 )}
 
                 {/* Error overlay */}
-                {f.status === 'error' && (
+                {f.status === "error" && (
                   <div className="absolute inset-0 bg-red-900/80 flex flex-col items-center justify-center p-2 z-10 text-center">
-                    <svg className="w-5 h-5 text-white mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <svg
+                      className="w-5 h-5 text-white mb-1.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
                     </svg>
-                    <span className="font-sans font-black text-[7px] text-white tracking-wider uppercase">Failed</span>
+                    <span className="font-sans font-black text-[7px] text-white tracking-wider uppercase">
+                      Failed
+                    </span>
                   </div>
                 )}
 
                 {/* Hover overlay — "Set as Cover" only shown after upload succeeds */}
-                {!isUploading && f.status !== 'error' && (
-                  <div style={{
-                    position: 'absolute', inset: 0, zIndex: 15,
-                    background: 'rgba(0,0,0,0.45)',
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center', gap: 4,
-                    opacity: 0, transition: 'opacity 0.18s',
-                    pointerEvents: 'none'
-                  }} className="gallery-item-overlay">
+                {!isUploading && f.status !== "error" && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      zIndex: 15,
+                      background: "rgba(0,0,0,0.45)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                      opacity: 0,
+                      transition: "opacity 0.18s",
+                      pointerEvents: "none",
+                    }}
+                    className="gallery-item-overlay"
+                  >
                     {!cover && (
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); setCoverImage(url); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCoverImage(url);
+                        }}
                         style={{
-                          fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase',
-                          letterSpacing: '0.05em', color: '#32171B',
-                          background: '#D5A73F', border: 'none', borderRadius: 4,
-                          padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap',
-                          pointerEvents: 'auto'
+                          fontSize: "8px",
+                          fontWeight: "bold",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "#32171B",
+                          background: "#D5A73F",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "4px 8px",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          pointerEvents: "auto",
                         }}
                       >
                         ⭐ Set as Cover
