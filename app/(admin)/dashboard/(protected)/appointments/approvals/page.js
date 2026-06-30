@@ -6,6 +6,7 @@ import { useStore } from '@/hooks/useStore';
 import { appointmentsStore } from '@/lib/store';
 import { APPOINTMENT_STATUSES } from '@/constants/appointmentStatus';
 import AppointmentStatusBadge from '@/components/appointments/AppointmentStatusBadge';
+import AppointmentReviewPanel from '@/components/appointments/AppointmentReviewPanel';
 import { Icons } from '@/components/shared/Icons';
 import { format, isToday, isSameWeek } from 'date-fns';
 import Pagination from '@/components/shared/Pagination';
@@ -18,38 +19,38 @@ export default function AppointmentApprovalsPage() {
   const [statusFilter, setStatusFilter] = useState('Pending');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;
-  const [adminNote, setAdminNote] = useState('');
 
   // Derived Statistics
   const stats = useMemo(() => {
     const pending = appointments.filter(a => a.status === APPOINTMENT_STATUSES.PENDING).length;
-    const approvedToday = appointments.filter(a => a.status === APPOINTMENT_STATUSES.APPROVED && a.updatedAt && isToday(new Date(a.updatedAt))).length;
-    const rejectedThisWeek = appointments.filter(a => a.status === APPOINTMENT_STATUSES.REJECTED && a.updatedAt && isSameWeek(new Date(a.updatedAt), new Date())).length;
+    const approvedToday = appointments.filter(a =>
+      a.status === APPOINTMENT_STATUSES.APPROVED && a.updatedAt && isToday(new Date(a.updatedAt))
+    ).length;
+    const rejectedThisWeek = appointments.filter(a =>
+      a.status === APPOINTMENT_STATUSES.REJECTED && a.updatedAt && isSameWeek(new Date(a.updatedAt), new Date())
+    ).length;
     return { pending, approvedToday, rejectedThisWeek };
   }, [appointments]);
 
   // Filtered Appointments
   const filteredAppointments = useMemo(() => {
     return appointments.filter(appt => {
-      const matchesSearch = 
-        appt.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        appt.clientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         appt.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         appt.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-      
       const matchesStatus = statusFilter === 'All' ? true : appt.status === statusFilter;
-      
       return matchesSearch && matchesStatus;
     });
   }, [appointments, searchQuery, statusFilter]);
 
-  // Pagination logic
+  // Pagination
   const totalPages = Math.ceil(filteredAppointments.length / pageSize);
   const paginatedAppointments = filteredAppointments.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  // Reset to first page when search or filters change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, statusFilter]);
@@ -61,29 +62,31 @@ export default function AppointmentApprovalsPage() {
 
   const selectedAppt = appointments.find(a => a.id === selectedId) || null;
 
-  const handleStatusUpdate = (id, newStatus) => {
+  const handleStatusUpdate = (id, newStatus, extras = {}) => {
     const appt = appointments.find(a => a.id === id);
-    const updatePayload = { 
+    const updatePayload = {
       status: newStatus,
       updatedAt: new Date().toISOString(),
-      internalNotes: adminNote
+      ...extras
     };
     updateItem(id, updatePayload);
     if (newStatus === 'Approved' && appt) {
       sendApprovalEmail({ ...appt, ...updatePayload });
     }
-    setAdminNote('');
     if (selectedId === id) setSelectedId(null);
   };
 
   return (
     <DashboardLayout title="Approval Requests" subtitle="Review pending appointment requests before they are confirmed">
+      {/* Page header */}
       <div className="page-head">
         <div className="page-title-wrap">
           <h1 className="text-2xl font-bold text-[var(--burgundy)]">Approval Requests</h1>
-          <p className="text-[11px] text-[var(--ink-light)]">Review pending appointment bookings and approve or reject them before they are confirmed.</p>
+          <p className="text-[11px] text-[var(--ink-light)]">
+            Review pending appointment bookings and approve or reject them before they are confirmed.
+          </p>
         </div>
-        <button 
+        <button
           onClick={() => window.location.href = '/dashboard/appointments/calendar'}
           className="primary-btn px-4 py-2 bg-[var(--burgundy)] text-white rounded-md font-bold text-sm"
         >
@@ -91,6 +94,7 @@ export default function AppointmentApprovalsPage() {
         </button>
       </div>
 
+      {/* KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <div className="bg-white border border-[var(--stone-dark)] border-t-[3px] border-t-[var(--gold)] rounded-md p-4 shadow-sm">
           <div className="text-2xl font-bold text-[var(--burgundy)] leading-none">{stats.pending}</div>
@@ -106,17 +110,18 @@ export default function AppointmentApprovalsPage() {
         </div>
       </div>
 
+      {/* Filters */}
       <div className="bg-white border border-[var(--stone-dark)] rounded-lg p-3.5 mb-4 flex flex-wrap items-center gap-3">
         <div className="flex-1 max-w-[340px] flex items-center gap-2 border border-[var(--stone-dark)] rounded-md bg-white px-3 py-2">
           <Icons.search className="w-4 h-4 text-[var(--ink-light)]" />
-          <input 
-            placeholder="Search by client name, email, or message" 
+          <input
+            placeholder="Search by client name, email, or message"
             className="border-none outline-none flex-1 text-sm bg-transparent"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <select 
+        <select
           className="border border-[var(--stone-dark)] rounded-md bg-[var(--cream)] px-3 py-2 text-xs font-medium text-[var(--ink-mid)]"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -126,197 +131,116 @@ export default function AppointmentApprovalsPage() {
           <option value="Rejected">Rejected</option>
           <option value="All">All requests</option>
         </select>
-        <select className="border border-[var(--stone-dark)] rounded-md bg-[var(--cream)] px-3 py-2 text-xs font-medium text-[var(--ink-mid)]">
-          <option>Sort by newest</option>
-          <option>Sort by earliest appointment</option>
-        </select>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
-        <div className="bg-white border border-[var(--stone-dark)] rounded-md shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-3.5 border-b border-[var(--stone)] flex justify-between items-center bg-[var(--cream)]">
-            <span className="text-[11px] font-bold text-[var(--burgundy)] uppercase tracking-wider">Pending Appointment Requests</span>
-            <button className="text-[10px] text-[var(--gold-dark)] font-bold underline">Export requests →</button>
-          </div>
+      {/* Full-width table */}
+      <div className="bg-white border border-[var(--stone-dark)] rounded-md shadow-sm overflow-hidden">
+        <div className="px-4 py-3.5 border-b border-[var(--stone)] flex justify-between items-center bg-[var(--cream)]">
+          <span className="text-[11px] font-bold text-[var(--burgundy)] uppercase tracking-wider">
+            Pending Appointment Requests
+          </span>
+          <button className="text-[10px] text-[var(--gold-dark)] font-bold underline">Export requests →</button>
+        </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[var(--cream-light)]">
-                  <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Client</th>
-                  <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Date & Time</th>
-                  <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Request Message</th>
-                  <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Status</th>
-                  <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedAppointments.length > 0 ? (
-                  paginatedAppointments.map(appt => (
-                    <tr 
-                      key={appt.id} 
-                      className={`hover:bg-[#FCFAF6] cursor-pointer border-b border-[var(--stone)] transition-colors ${selectedId === appt.id ? 'bg-[#FCFAF6]' : ''}`}
-                      onClick={() => setSelectedId(appt.id)}
-                    >
-                      <td className="p-4">
-                        <div className="text-[12px] font-bold text-[var(--ink)]">{appt.clientName}</div>
-                        <div className="text-[10px] text-[var(--ink-light)] mt-1">{appt.email}<br />{appt.phone}</div>
-                      </td>
-                      <td className="p-4 text-[12px] text-[var(--ink-mid)] font-medium">
-                        {format(new Date(appt.preferredDate), 'MMM d, yyyy')}<br />
-                        <span className="text-[var(--gold-dark)]">{appt.preferredTime}</span>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-[11px] text-[var(--ink-mid)] leading-relaxed max-w-[340px] line-clamp-2">
-                          {appt.notes || 'No message provided.'}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <AppointmentStatusBadge status={appt.status} />
-                      </td>
-                      <td className="p-4">
-                        <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            onClick={() => setSelectedId(appt.id)}
-                            className={`w-7 h-7 flex items-center justify-center rounded border transition-all ${selectedId === appt.id ? 'bg-[var(--gold)] text-white border-[var(--gold)]' : 'border-[var(--stone-dark)] text-[var(--ink-mid)] hover:bg-[var(--gold-light)] hover:text-[var(--burgundy)]'}`}
-                          >
-                            <Icons.eye className="w-3.5 h-3.5" />
-                          </button>
-                          {appt.status === APPOINTMENT_STATUSES.PENDING && (
-                            <>
-                              <button 
-                                onClick={() => handleStatusUpdate(appt.id, APPOINTMENT_STATUSES.APPROVED)}
-                                className="w-7 h-7 flex items-center justify-center rounded border border-[var(--stone-dark)] text-[var(--ink-mid)] hover:bg-[var(--green-light)] hover:text-[var(--green)] hover:border-[var(--green)] transition-all"
-                              >
-                                <Icons.check className="w-3.5 h-3.5" />
-                              </button>
-                              <button 
-                                onClick={() => handleStatusUpdate(appt.id, APPOINTMENT_STATUSES.REJECTED)}
-                                className="w-7 h-7 flex items-center justify-center rounded border border-[var(--stone-dark)] text-[var(--ink-mid)] hover:bg-[var(--red-light)] hover:text-[var(--red)] hover:border-[var(--red)] transition-all"
-                              >
-                                <Icons.close className="w-3.5 h-3.5" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="p-12 text-center text-[var(--ink-light)] italic text-sm">
-                      No requests found matching your current filters.
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-[var(--cream-light)]">
+                <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Client</th>
+                <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Date &amp; Time</th>
+                <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Request Message</th>
+                <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Status</th>
+                <th className="text-left p-4 text-[10px] uppercase tracking-widest text-[var(--burgundy)] border-b border-[var(--stone-dark)] font-bold">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedAppointments.length > 0 ? (
+                paginatedAppointments.map(appt => (
+                  <tr
+                    key={appt.id}
+                    className={`hover:bg-[#FCFAF6] cursor-pointer border-b border-[var(--stone)] transition-colors ${selectedId === appt.id ? 'bg-[#FCFAF6]' : ''}`}
+                    onClick={() => setSelectedId(appt.id)}
+                  >
+                    <td className="p-4">
+                      <div className="text-[12px] font-bold text-[var(--ink)]">{appt.clientName}</div>
+                      <div className="text-[10px] text-[var(--ink-light)] mt-1">
+                        {appt.email}<br />{appt.phone}
+                      </div>
+                    </td>
+                    <td className="p-4 text-[12px] text-[var(--ink-mid)] font-medium">
+                      {format(new Date(appt.preferredDate), 'MMM d, yyyy')}<br />
+                      <span className="text-[var(--gold-dark)]">{appt.preferredTime}</span>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-[11px] text-[var(--ink-mid)] leading-relaxed max-w-[340px] line-clamp-2">
+                        {appt.message || appt.notes || 'No message provided.'}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <AppointmentStatusBadge status={appt.status} />
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setSelectedId(appt.id)}
+                          className={`w-7 h-7 flex items-center justify-center rounded border transition-all ${
+                            selectedId === appt.id
+                              ? 'bg-[var(--gold)] text-white border-[var(--gold)]'
+                              : 'border-[var(--stone-dark)] text-[var(--ink-mid)] hover:bg-[var(--gold-light)] hover:text-[var(--burgundy)]'
+                          }`}
+                        >
+                          <Icons.eye className="w-3.5 h-3.5" />
+                        </button>
+                        {appt.status === APPOINTMENT_STATUSES.PENDING && (
+                          <>
+                            <button
+                              onClick={() => handleStatusUpdate(appt.id, APPOINTMENT_STATUSES.APPROVED)}
+                              className="w-7 h-7 flex items-center justify-center rounded border border-[var(--stone-dark)] text-[var(--ink-mid)] hover:bg-[var(--green-light)] hover:text-[var(--green)] hover:border-[var(--green)] transition-all"
+                            >
+                              <Icons.check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(appt.id, APPOINTMENT_STATUSES.REJECTED)}
+                              className="w-7 h-7 flex items-center justify-center rounded border border-[var(--stone-dark)] text-[var(--ink-mid)] hover:bg-[var(--red-light)] hover:text-[var(--red)] hover:border-[var(--red)] transition-all"
+                            >
+                              <Icons.close className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {filteredAppointments.length > 0 && (
-            <div className="px-4 py-3 border-t border-[var(--stone-dark)] bg-[var(--cream-light)]">
-              <Pagination 
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                totalItems={filteredAppointments.length}
-                pageSize={pageSize}
-              />
-            </div>
-          )}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="p-12 text-center text-[var(--ink-light)] italic text-sm">
+                    No requests found matching your current filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <div className="bg-white border border-[var(--stone-dark)] rounded-md shadow-sm overflow-hidden sticky top-[80px]">
-          <div className="px-4 py-3.5 border-b border-[var(--stone)] flex justify-between items-center bg-[var(--cream)]">
-            <span className="text-[11px] font-bold text-[var(--burgundy)] uppercase tracking-wider">Request Review Panel</span>
-            <button className="text-[10px] text-[var(--gold-dark)] font-bold underline">Open full details →</button>
+        {filteredAppointments.length > 0 && (
+          <div className="px-4 py-3 border-t border-[var(--stone-dark)] bg-[var(--cream-light)]">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              totalItems={filteredAppointments.length}
+              pageSize={pageSize}
+            />
           </div>
-
-          <div className="p-4">
-            {selectedAppt ? (
-              <div className="space-y-4">
-                <div className="bg-[var(--cream)] border border-[var(--stone-dark)] rounded-md p-3">
-                  <div className="text-[9px] text-[var(--ink-light)] uppercase tracking-widest font-bold mb-1">Selected Client</div>
-                  <div className="text-[12px] font-bold text-[var(--ink)]">{selectedAppt.clientName}</div>
-                </div>
-
-                <div className="bg-[var(--cream)] border border-[var(--stone-dark)] rounded-md p-3">
-                  <div className="text-[9px] text-[var(--ink-light)] uppercase tracking-widest font-bold mb-1">Contact Details</div>
-                  <div className="text-[12px] text-[var(--ink)] leading-relaxed">
-                    {selectedAppt.email}<br />{selectedAppt.phone}
-                  </div>
-                </div>
-
-                <div className="bg-[var(--cream)] border border-[var(--stone-dark)] rounded-md p-3">
-                  <div className="text-[9px] text-[var(--ink-light)] uppercase tracking-widest font-bold mb-1">Requested Appointment</div>
-                  <div className="text-[12px] text-[var(--ink)] font-bold">
-                    {format(new Date(selectedAppt.preferredDate), 'MMMM d, yyyy')} at {selectedAppt.preferredTime}
-                  </div>
-                </div>
-
-                <div className="bg-[var(--cream)] border border-[var(--stone-dark)] rounded-md p-3">
-                  <div className="text-[9px] text-[var(--ink-light)] uppercase tracking-widest font-bold mb-1">Booking Status</div>
-                  <div className="mt-1"><AppointmentStatusBadge status={selectedAppt.status} /></div>
-                </div>
-
-                <div>
-                  <div className="text-[9px] text-[var(--ink-light)] uppercase tracking-widest font-bold mb-1.5 ml-1">Client Message</div>
-                  <div className="bg-[#FCFAF6] border border-[var(--stone-dark)] border-left-[3px] border-l-[var(--gold)] rounded-md p-3 text-[12px] text-[var(--ink-mid)] leading-relaxed font-italic">
-                    "{selectedAppt.notes || 'No notes provided by client.'}"
-                  </div>
-                </div>
-
-                <div className="bg-white border border-[var(--stone-dark)] rounded-md p-3 shadow-sm">
-                  <div className="text-[9px] text-[var(--ink-light)] uppercase tracking-widest font-bold mb-2">Admin Note</div>
-                  <textarea 
-                    placeholder="Add an internal note or response before approving/rejecting."
-                    className="w-full min-h-[90px] border border-[var(--stone-dark)] rounded-md p-2.5 text-xs text-[var(--ink)] bg-[var(--cream)] resize-y outline-none"
-                    value={adminNote}
-                    onChange={(e) => setAdminNote(e.target.value)}
-                  />
-
-                  <div className="flex gap-2 justify-end mt-3">
-                    {selectedAppt.status === APPOINTMENT_STATUSES.PENDING ? (
-                      <>
-                        <button 
-                          onClick={() => handleStatusUpdate(selectedId, APPOINTMENT_STATUSES.REJECTED)}
-                          className="bg-[var(--red)] text-white px-4 py-2 rounded-md font-bold text-xs hover:bg-[var(--red)]/90 transition-colors"
-                        >
-                          Reject
-                        </button>
-                        <button 
-                          onClick={() => handleStatusUpdate(selectedId, APPOINTMENT_STATUSES.APPROVED)}
-                          className="bg-[var(--green)] text-white px-4 py-2 rounded-md font-bold text-xs hover:bg-[var(--green)]/90 transition-colors"
-                        >
-                          Approve
-                        </button>
-                      </>
-                    ) : (
-                      <button 
-                        onClick={() => setSelectedId(null)}
-                        className="bg-[var(--burgundy)] text-white px-4 py-2 rounded-md font-bold text-xs w-full"
-                      >
-                        Close Review
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="py-12 px-6 text-center">
-                <div className="w-12 h-12 bg-[var(--cream)] rounded-full flex items-center justify-center mx-auto mb-4 text-[var(--gold)]">
-                  <Icons.eye className="w-6 h-6" />
-                </div>
-                <div className="text-sm font-bold text-[var(--burgundy)] mb-2">No Request Selected</div>
-                <p className="text-xs text-[var(--ink-light)] leading-relaxed">
-                  Select a request from the table to view full details and process the booking.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
+
+      {/* Animated slide-over review panel (fixed overlay) */}
+      <AppointmentReviewPanel
+        appointment={selectedAppt}
+        onClose={() => setSelectedId(null)}
+        onStatusChange={handleStatusUpdate}
+      />
     </DashboardLayout>
   );
 }
-

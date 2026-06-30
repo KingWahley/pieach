@@ -196,7 +196,7 @@ export default async function TeamMemberDetailsPage({ params }) {
             Qualifications
           </span>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-5">
             {(member.qualifications || []).map((q, idx) => (
               <div 
                 key={idx}

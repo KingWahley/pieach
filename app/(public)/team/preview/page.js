@@ -158,6 +158,8 @@ export default function TeamPreviewPage() {
         await teamStore.createItem(finalTeamData);
       }
 
+      // Signal the opener edit tab to navigate away (prevents double-submit)
+      localStorage.setItem('pieach-team-published', Date.now().toString());
       localStorage.removeItem('pieach-team-preview');
       setSuccess(true);
 
@@ -343,7 +345,7 @@ export default function TeamPreviewPage() {
               Qualifications
             </span>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-5">
               {(member.qualifications || []).map((q, idx) => (
                 <div 
                   key={idx}

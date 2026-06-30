@@ -65,7 +65,8 @@ export default function ProjectPreviewPage() {
         projectsStore.createItem(finalProjectData);
       }
 
-      // Clear preview data
+      // Signal the opener edit tab to navigate away (prevents double-submit)
+      localStorage.setItem('pieach-project-published', Date.now().toString());
       localStorage.removeItem('pieach-project-preview');
       setSuccess(true);
 

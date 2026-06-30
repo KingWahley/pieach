@@ -262,6 +262,19 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
   const [pendingAction,        setPendingAction]        = useState(null);  // 'draft' | 'publish'
   const [successMessage,       setSuccessMessage]       = useState('');
 
+  // If the user publishes from the preview tab, redirect this edit tab away
+  // to prevent a second accidental submit.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'pieach-project-published') {
+        localStorage.removeItem('pieach-project-published');
+        router.push('/dashboard/projects');
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [router]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
