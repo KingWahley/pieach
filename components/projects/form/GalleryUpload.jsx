@@ -77,7 +77,7 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
 
   const handleLibrarySelect = (urls) => {
     const newExisting = urls.map(url => ({
-      id: `lib-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: url,
       url
     }));
     setGalleryFiles(prev => ({
@@ -125,7 +125,7 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
   };
 
   const visibleExistingImages = (galleryFiles.existingImages || []).filter(
-    img => !(galleryFiles.removedImageIds || []).includes(img.id || img.url)
+    img => !(galleryFiles.removedImageIds || []).includes(img.id || img.url || img)
   );
 
   const hasImages = visibleExistingImages.length > 0 || (galleryFiles.newImages && galleryFiles.newImages.length > 0);
@@ -243,7 +243,8 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                   background: 'rgba(0,0,0,0.45)',
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 4,
-                  opacity: 0, transition: 'opacity 0.18s'
+                  opacity: 0, transition: 'opacity 0.18s',
+                  pointerEvents: 'none'
                 }} className="gallery-item-overlay">
                   {!cover && (
                     <button
@@ -253,7 +254,8 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                         fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase',
                         letterSpacing: '0.05em', color: '#32171B',
                         background: '#D5A73F', border: 'none', borderRadius: 4,
-                        padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap'
+                        padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap',
+                        pointerEvents: 'auto'
                       }}
                     >
                       ⭐ Set as Cover
@@ -264,7 +266,7 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                 {/* Remove button */}
                 <button
                   type="button"
-                  className="gallery-preview-remove"
+                  className="gallery-preview-remove z-20"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveExisting(img.id || img.url || img, url);
@@ -333,7 +335,8 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                     background: 'rgba(0,0,0,0.45)',
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', justifyContent: 'center', gap: 4,
-                    opacity: 0, transition: 'opacity 0.18s'
+                    opacity: 0, transition: 'opacity 0.18s',
+                    pointerEvents: 'none'
                   }} className="gallery-item-overlay">
                     {!cover && (
                       <button
@@ -343,7 +346,8 @@ export default function GalleryUpload({ galleryFiles, setGalleryFiles, coverImag
                           fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase',
                           letterSpacing: '0.05em', color: '#32171B',
                           background: '#D5A73F', border: 'none', borderRadius: 4,
-                          padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap'
+                          padding: '4px 8px', cursor: 'pointer', whiteSpace: 'nowrap',
+                          pointerEvents: 'auto'
                         }}
                       >
                         ⭐ Set as Cover

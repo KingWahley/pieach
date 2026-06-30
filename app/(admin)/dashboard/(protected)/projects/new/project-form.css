@@ -211,6 +211,7 @@
   font-size: 14px;
   line-height: 1;
   border: 1px solid var(--stone);
+  z-index: 20;
 }
 
 .gallery-preview-remove:hover {

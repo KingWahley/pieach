@@ -304,7 +304,7 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
   // Check if the project has any images at all
   const hasImages = () => {
     const visibleExisting = (galleryFiles.existingImages || []).filter(
-      img => !(galleryFiles.removedImageIds || []).includes(img.id || img.url)
+      img => !(galleryFiles.removedImageIds || []).includes(img.id || img.url || img)
     );
     return visibleExisting.length > 0 || (galleryFiles.newImages || []).length > 0 || !!coverImage;
   };
@@ -366,8 +366,11 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
   const handleOverlayDone = () => router.push('/dashboard/projects');
 
   const handlePreview = () => {
+    const visibleExisting = (galleryFiles.existingImages || []).filter(
+      img => !(galleryFiles.removedImageIds || []).includes(img.id || img.url || img)
+    );
     const galleryUrls = [
-      ...(galleryFiles.existingImages || []).map(img => typeof img === 'string' ? img : (img.url || img.previewUrl || '')),
+      ...visibleExisting.map(img => typeof img === 'string' ? img : (img.url || img.previewUrl || '')),
       ...(galleryFiles.newImages      || []).map(img => typeof img === 'string' ? img : (img.url || img.previewUrl || img.preview || '')),
     ].filter(Boolean);
 
