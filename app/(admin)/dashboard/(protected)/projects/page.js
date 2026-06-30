@@ -221,7 +221,7 @@ export default function ProjectsPage() {
                         WebkitBoxOrient: 'vertical', 
                         overflow: 'hidden' 
                       }}>
-                        {project.description}
+                        {project.description ? project.description.replace(/(<([^>]+)>)/gi, '') : ''}
                       </div>
                     </td>
                     <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
@@ -321,7 +321,7 @@ export default function ProjectsPage() {
                     WebkitBoxOrient: 'vertical', 
                     overflow: 'hidden' 
                   }}>
-                    {project.description}
+                    {project.description ? project.description.replace(/(<([^>]+)>)/gi, '') : ''}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 13px', borderTop: '1px solid var(--stone)', background: 'var(--cream)' }}>

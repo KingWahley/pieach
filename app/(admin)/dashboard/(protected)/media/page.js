@@ -8,7 +8,7 @@ import SearchToolbar from '@/components/shared/SearchToolbar';
 import EmptyState from '@/components/shared/EmptyState';
 import GridToggle from '@/components/shared/GridToggle';
 import { useStore } from '@/hooks/useStore';
-import { mediaStore } from '@/lib/store';
+import { mediaStore, projectsStore, blogStore } from '@/lib/store';
 import { uploadFile } from '@/lib/upload';
 import { useFilterSort } from '@/hooks/useFilterSort';
 import { useViewMode } from '@/hooks/useViewMode';
@@ -17,6 +17,28 @@ import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 export default function MediaPage() {
   const { data, createItem, updateItem, deleteItem } = useStore(mediaStore);
+  const { data: projectsData } = useStore(projectsStore);
+  const { data: blogData } = useStore(blogStore);
+
+  // Build a map of media URL -> array of project/blog names that reference it
+  const usageMap = useMemo(() => {
+    const map = {};
+    const add = (url, label) => {
+      if (!url || typeof url !== 'string') return;
+      if (!map[url]) map[url] = [];
+      if (!map[url].includes(label)) map[url].push(label);
+    };
+    (projectsData || []).forEach(p => {
+      const name = p.title || p.name || 'Untitled Project';
+      if (p.image) add(p.image, name);
+      if (Array.isArray(p.gallery)) p.gallery.forEach(u => add(u, name));
+    });
+    (blogData || []).forEach(b => {
+      const name = b.title || 'Blog Post';
+      if (b.image) add(b.image, name);
+    });
+    return map;
+  }, [projectsData, blogData]);
   const { filteredAndSortedData, searchQuery, setSearchQuery } = useFilterSort(data, {}, { key: 'dateAdded', order: 'desc' });
   
   const [view, setView] = useViewMode();
@@ -134,7 +156,7 @@ export default function MediaPage() {
         usage: 'Project',
         altText: '',
         caption: '',
-        usedIn: ['Unassigned']
+        usedIn: []
       };
       createItem(tempAsset);
 
@@ -366,7 +388,7 @@ export default function MediaPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-[9px] font-bold px-2 py-1 rounded-full bg-[var(--blue-light)] text-[var(--blue)] uppercase">
-                            {file.usage || 'Unassigned'}
+                            {(usageMap[file.url] && usageMap[file.url].length > 0) ? 'In Use' : 'Unassigned'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-[var(--ink-mid)]">{file.size}</td>
@@ -473,7 +495,7 @@ export default function MediaPage() {
                   <div>
                     <label className="block text-[9px] font-bold text-[var(--ink-light)] uppercase tracking-widest mb-1.5">Used In</label>
                     <div className="flex flex-wrap gap-2">
-                      {(selectedFile.usedIn || ['Unassigned']).map((tag, i) => (
+                      {((usageMap[selectedFile.url] && usageMap[selectedFile.url].length > 0) ? usageMap[selectedFile.url] : ['Unassigned']).map((tag, i) => (
                         <span key={i} className="px-3 py-1 bg-[var(--blue-light)] text-[var(--blue)] text-[10px] font-bold rounded-full uppercase">
                           {tag}
                         </span>

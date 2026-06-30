@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroSection";
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
+import DescriptionCollapse from "@/components/projects/DescriptionCollapse";
 import CTASection from "@/components/sections/CTASection";
 import { projectsStore } from '@/lib/store';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
@@ -220,9 +221,7 @@ export default function ProjectPreviewPage() {
             
             {/* Right Column: Narrative & Technical Specs Grid */}
             <div className="lg:col-span-8">
-              <p className="font-serif text-white/90 text-base sm:text-lg lg:text-xl leading-relaxed font-light mb-12 max-w-4xl">
-                {project.description || 'Project description narrative goes here.'}
-              </p>
+              <DescriptionCollapse html={project.description || 'Project description narrative goes here.'} />
               
               {/* Thin horizontal line */}
               <div className="w-full h-[1px] bg-white/20 mb-12" />
@@ -272,13 +271,22 @@ export default function ProjectPreviewPage() {
                     </h3>
                   </div>
                   <div className="lg:col-span-8">
-                    <p className="font-sans text-neutral-600 text-sm leading-relaxed max-w-3xl whitespace-pre-line">
-                      {field.body}
-                    </p>
+                    <div className="font-sans text-neutral-600 text-sm leading-relaxed max-w-3xl custom-rich-text-light" dangerouslySetInnerHTML={{ __html: field.body || '' }} />
                   </div>
                 </div>
               ))}
             </div>
+            <style>{`
+              .custom-rich-text-light p { margin: 0 0 1em; }
+              .custom-rich-text-light h3 { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #111; margin: 1.5em 0 0.5em; }
+              .custom-rich-text-light b, .custom-rich-text-light strong { font-weight: 700; color: #111; }
+              .custom-rich-text-light i, .custom-rich-text-light em { font-style: italic; }
+              .custom-rich-text-light u { text-decoration: underline; text-underline-offset: 3px; }
+              .custom-rich-text-light ul { list-style: disc; padding-left: 1.4em; margin: 0.5em 0 1em; }
+              .custom-rich-text-light ol { list-style: decimal; padding-left: 1.4em; margin: 0.5em 0 1em; }
+              .custom-rich-text-light li { margin: 0.3em 0; }
+              .custom-rich-text-light *, .custom-rich-text-light span, .custom-rich-text-light div { background-color: transparent !important; background: transparent !important; }
+            `}</style>
           </div>
         </section>
       )}

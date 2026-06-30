@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroSection";
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
 import CTASection from "@/components/sections/CTASection";
+import DescriptionCollapse from "@/components/projects/DescriptionCollapse";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -111,9 +112,7 @@ export default async function ProjectDetailsPage({ params }) {
             
             {/* Right Column: Narrative & Technical Specs Grid */}
             <div className="lg:col-span-8">
-              <p className="font-serif text-white/90 text-base sm:text-lg lg:text-xl leading-relaxed font-light mb-12 max-w-4xl">
-                {project.description}
-              </p>
+              <DescriptionCollapse html={project.description} />
               
               {/* Thin horizontal line */}
               <div className="w-full h-[1px] bg-white/20 mb-12" />
@@ -164,13 +163,22 @@ export default async function ProjectDetailsPage({ params }) {
                     </h3>
                   </div>
                   <div className="lg:col-span-8">
-                    <p className="font-sans text-neutral-600 text-sm leading-relaxed max-w-3xl whitespace-pre-line">
-                      {field.body}
-                    </p>
+                    <div className="font-sans text-neutral-600 text-sm leading-relaxed max-w-3xl custom-rich-text-light" dangerouslySetInnerHTML={{ __html: field.body || '' }} />
                   </div>
                 </div>
               ))}
             </div>
+            <style>{`
+              .custom-rich-text-light p { margin: 0 0 1em; }
+              .custom-rich-text-light h3 { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #111; margin: 1.5em 0 0.5em; }
+              .custom-rich-text-light b, .custom-rich-text-light strong { font-weight: 700; color: #111; }
+              .custom-rich-text-light i, .custom-rich-text-light em { font-style: italic; }
+              .custom-rich-text-light u { text-decoration: underline; text-underline-offset: 3px; }
+              .custom-rich-text-light ul { list-style: disc; padding-left: 1.4em; margin: 0.5em 0 1em; }
+              .custom-rich-text-light ol { list-style: decimal; padding-left: 1.4em; margin: 0.5em 0 1em; }
+              .custom-rich-text-light li { margin: 0.3em 0; }
+              .custom-rich-text-light *, .custom-rich-text-light span, .custom-rich-text-light div { background-color: transparent !important; background: transparent !important; }
+            `}</style>
           </div>
         </section>
       )}
@@ -188,63 +196,47 @@ export default async function ProjectDetailsPage({ params }) {
             </h2>
           </div>
 
-          {/* Grid Layout of 5 Images */}
-          <div className="space-y-6">
-            {/* 1 Large Full-Width Image */}
-            {project.gallery && project.gallery[0] && (
+          {/* Dynamic gallery — first image full-width, then all remaining in pairs */}
+          {project.gallery && project.gallery.length > 0 && (
+            <div className="space-y-6">
+              {/* First image: full-width hero */}
               <div className="relative aspect-[16/7] md:aspect-[21/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
                 <img
                   src={project.gallery[0]}
-                  alt={`${project.title} gallery visual 1`}
+                  alt={`${project.title} – image 1`}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
-            )}
 
-            {/* Row 2: 2 Images */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {project.gallery && project.gallery[1] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
-                    src={project.gallery[1]}
-                    alt={`${project.title} gallery visual 2`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              {project.gallery && project.gallery[2] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
-                    src={project.gallery[2]}
-                    alt={`${project.title} gallery visual 3`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              {/* Remaining images: 2 per row */}
+              {Array.from({ length: Math.ceil((project.gallery.length - 1) / 2) }).map((_, rowIdx) => {
+                const a = project.gallery[1 + rowIdx * 2];
+                const b = project.gallery[2 + rowIdx * 2];
+                return (
+                  <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {a && (
+                      <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
+                        <img
+                          src={a}
+                          alt={`${project.title} – image ${2 + rowIdx * 2}`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    {b && (
+                      <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
+                        <img
+                          src={b}
+                          alt={`${project.title} – image ${3 + rowIdx * 2}`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Row 3: 2 Images */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {project.gallery && project.gallery[3] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
-                    src={project.gallery[3]}
-                    alt={`${project.title} gallery visual 4`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              {project.gallery && project.gallery[4] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
-                    src={project.gallery[4]}
-                    alt={`${project.title} gallery visual 5`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* Button to Projects Page */}
           <div className="mt-16 text-center">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { projectStatuses, projectCategories, countryOptions } from '@/data/projectOptions';
+import RichTextEditor from './RichTextEditor';
 
 export default function ProjectBasicFields({ formData, handleChange, errors, categories = [] }) {
   return (
@@ -108,14 +109,12 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
       </div>
 
       <div className="form-field full">
-        <label htmlFor="description">Description {errors.description && <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>*Required</span>}</label>
-        <textarea 
-          id="description"
-          name="description"
-          placeholder="Write the main project description"
+        <label>Description {errors.description && <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>*Required</span>}</label>
+        <RichTextEditor
           value={formData.description}
-          onChange={handleChange}
-          style={errors.description ? { borderColor: 'var(--red)' } : {}}
+          onChange={(html) => handleChange({ target: { name: 'description', value: html } })}
+          placeholder="Write the main project description — use the toolbar for bold, bullet points, headings and more."
+          hasError={!!errors.description}
         />
       </div>
     </>

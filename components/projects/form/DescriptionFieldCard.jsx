@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import RichTextEditor from './RichTextEditor';
 
 export default function DescriptionFieldCard({
   field,
@@ -34,13 +35,13 @@ export default function DescriptionFieldCard({
         onChange={(e) => updateField(index, 'title', e.target.value)}
         aria-label="Additional field title"
       />
-      <textarea 
-        className="field-body" 
-        placeholder="Field body"
-        value={field.body}
-        onChange={(e) => updateField(index, 'body', e.target.value)}
-        aria-label="Additional field body"
-      />
+      <div style={{ flex: 1, minWidth: '200px' }}>
+        <RichTextEditor
+          placeholder="Field body — use the toolbar for formatting"
+          value={field.body}
+          onChange={(html) => updateField(index, 'body', html)}
+        />
+      </div>
       <button 
         type="button" 
         className="secondary-btn remove-field-btn" 

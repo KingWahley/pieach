@@ -218,6 +218,11 @@
   color: white;
 }
 
+.gallery-preview-item:hover .gallery-item-overlay {
+  opacity: 1 !important;
+}
+
+
 .form-actions {
   padding: 14px 16px;
   border-top: 1px solid var(--stone);
