@@ -15,6 +15,7 @@ import GridToggle from '@/components/shared/GridToggle';
 import Pagination from '@/components/shared/Pagination';
 
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function VacanciesPage() {
   const { data: vacancies, createItem, updateItem, deleteItem } = useStore(vacanciesStore);
@@ -32,6 +33,7 @@ export default function VacanciesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [vacancyToDelete, setVacancyToDelete] = useState(null);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
 
   // Reset page when filters change
   useEffect(() => {
@@ -77,6 +79,7 @@ export default function VacanciesPage() {
       if (reviewVacancy?.id === vacancyToDelete.id) {
         setReviewVacancy(null);
       }
+      setToast({ message: `Vacancy "${vacancyToDelete.title}" deleted.`, type: 'success' });
       setIsDeleteModalOpen(false);
       setVacancyToDelete(null);
     }
@@ -415,6 +418,8 @@ export default function VacanciesPage() {
         confirmText="Publish Now"
         type="primary"
       />
+
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
 
       <style jsx>{`
         .icon-btn-bordered {

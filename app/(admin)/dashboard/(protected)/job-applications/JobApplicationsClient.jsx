@@ -11,6 +11,7 @@ import { useFilterSort } from '@/hooks/useFilterSort';
 import { useSearchParams } from 'next/navigation';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function JobApplicationsClient() {
   const { data: applications, updateItem, deleteItem } = useStore(jobApplicationsStore);
@@ -24,6 +25,7 @@ export default function JobApplicationsClient() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [appToDelete, setAppToDelete] = useState(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
   const pageSize = 7;
 
   const { filteredAndSortedData, searchQuery, setSearchQuery, filters, updateFilter } = useFilterSort(
@@ -772,7 +774,9 @@ export default function JobApplicationsClient() {
         }}
         onConfirm={() => {
           if (appToDelete) {
+            const name = appToDelete.applicantName || appToDelete.name || 'Applicant';
             deleteItem(appToDelete.id);
+            setToast({ message: `Application from "${name}" deleted.`, type: 'success' });
           }
           setIsDeleteModalOpen(false);
           setAppToDelete(null);
@@ -783,6 +787,7 @@ export default function JobApplicationsClient() {
         cancelText="Cancel"
         type="danger"
       />
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
 
       {showExportModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>

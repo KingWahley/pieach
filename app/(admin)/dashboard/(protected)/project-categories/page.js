@@ -9,6 +9,7 @@ import { useFilterSort } from '@/hooks/useFilterSort';
 import SearchToolbar from '@/components/shared/SearchToolbar';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function ProjectCategoriesPage() {
   const { data, createItem, updateItem, deleteItem } = useStore(projectCategoriesStore);
@@ -25,6 +26,7 @@ export default function ProjectCategoriesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [catToDelete, setCatToDelete] = useState(null);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAndSortedData.length / pageSize);
@@ -283,12 +285,16 @@ export default function ProjectCategoriesPage() {
         }}
         onConfirm={() => {
           if (isBulkDelete) {
+            const count = selectedIds.length;
             selectedIds.forEach(id => deleteItem(id));
             setSelectedIds([]);
             setIsBulkDelete(false);
+            setToast({ message: `${count} category/categories deleted.`, type: 'success' });
           } else if (catToDelete) {
+            const name = catToDelete.name;
             deleteItem(catToDelete.id);
             setCatToDelete(null);
+            setToast({ message: `Category "${name}" deleted.`, type: 'success' });
           }
           setIsDeleteModalOpen(false);
         }}
@@ -306,6 +312,7 @@ export default function ProjectCategoriesPage() {
           to { opacity: 1; transform: translateX(0); }
         }
       `}} />
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

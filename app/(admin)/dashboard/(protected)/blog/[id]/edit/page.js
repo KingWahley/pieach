@@ -1,26 +1,36 @@
 'use client';
 
-import React, { use } from 'react';
+import React, { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import BlogForm from '@/components/forms/BlogForm';
 import { useStore } from '@/hooks/useStore';
 import { blogStore } from '@/lib/store';
 import EmptyState from '@/components/shared/EmptyState';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 
 export default function EditBlogPostPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const { data, updateItem } = useStore(blogStore);
+  const { registerForm, clearForm } = useUnsavedChanges();
   
   const post = data.find(p => p.id === id);
 
+  useEffect(() => {
+    if (!post) return;
+    registerForm(true, null); // no draft save for blog
+    return () => clearForm();
+  }, [post, registerForm, clearForm]);
+
   const handleSave = (finalData) => {
     updateItem(id, finalData);
+    clearForm();
     router.push('/dashboard/blog');
   };
 
   const handleCancel = () => {
+    clearForm();
     router.push('/dashboard/blog');
   };
 

@@ -1,25 +1,34 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import BlogForm from '@/components/forms/BlogForm';
 import { useStore } from '@/hooks/useStore';
 import { blogStore } from '@/lib/store';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 
 export default function NewBlogPostPage() {
   const router = useRouter();
   const { createItem } = useStore(blogStore);
+  const { registerForm, clearForm } = useUnsavedChanges();
+
+  useEffect(() => {
+    registerForm(true, null); // no draft save for blog
+    return () => clearForm();
+  }, [registerForm, clearForm]);
 
   const handleSave = (finalData) => {
     createItem({
       ...finalData,
       reads: 0 // Initialize reads for new post
     });
+    clearForm();
     router.push('/dashboard/blog');
   };
 
   const handleCancel = () => {
+    clearForm();
     router.push('/dashboard/blog');
   };
 

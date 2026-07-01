@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { MAIN_NAV, CAREERS_NAV, SYSTEM_NAV } from '@/constants/navigation';
 import { Icons } from '@/components/shared/Icons';
 import Lenis from 'lenis';
@@ -15,12 +15,44 @@ import {
   vacanciesStore, 
   appointmentsStore 
 } from '@/lib/store';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [openGroups, setOpenGroups] = useState({});
   const sidebarRef = useRef(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Unsaved changes guard
+  const { isDirty, onSaveAsDraft, clearForm } = useUnsavedChanges();
+  const [pendingHref, setPendingHref] = useState(null);
+
+  // Called for every sidebar nav link click
+  const handleNavClick = useCallback((e, href) => {
+    if (isDirty && href && href !== pathname) {
+      e.preventDefault();
+      setPendingHref(href);
+    }
+  }, [isDirty, pathname]);
+
+  const handleStay = () => setPendingHref(null);
+
+  const handleDiscard = () => {
+    clearForm();
+    const href = pendingHref;
+    setPendingHref(null);
+    router.push(href);
+  };
+
+  const handleSaveAsDraft = () => {
+    if (onSaveAsDraft) onSaveAsDraft();
+    clearForm();
+    const href = pendingHref;
+    setPendingHref(null);
+    router.push(href);
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -139,6 +171,7 @@ export default function Sidebar() {
                         key={sub.label}
                         href={sub.href}
                         className={`submenu-item ${pathname === sub.href ? 'active-sub' : ''}`}
+                        onClick={(e) => handleNavClick(e, sub.href)}
                       >
                         {sub.label}
                       </Link>
@@ -155,6 +188,7 @@ export default function Sidebar() {
               href={item.href || '#'} 
               className={`nav-item ${isActive ? 'active' : ''}`}
               title={isCollapsed ? item.label : undefined}
+              onClick={(e) => handleNavClick(e, item.href)}
             >
               {Icon && <Icon className="nav-icon" />}
               {!isCollapsed && <span className="nav-label">{item.label}</span>}
@@ -167,50 +201,59 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`} data-lenis-prevent ref={sidebarRef}>
-      <div className="sidebar-inner">
-        <div className="sidebar-logo">
-          <Link href="/dashboard" className="flex items-center gap-3" style={{ textDecoration: 'none', flex: 1, minWidth: 0 }}>
-            <div className="logo-mark" style={{ background: 'transparent' }}>
-              <img 
-                src="/images/mainlogo2.png" 
-                alt="Pieach Logo" 
-                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} 
-              />
-            </div>
+    <>
+      <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`} data-lenis-prevent ref={sidebarRef}>
+        <div className="sidebar-inner">
+          <div className="sidebar-logo">
+            <Link href="/dashboard" className="flex items-center gap-3" style={{ textDecoration: 'none', flex: 1, minWidth: 0 }} onClick={(e) => handleNavClick(e, '/dashboard')}>
+              <div className="logo-mark" style={{ background: 'transparent' }}>
+                <img 
+                  src="/images/mainlogo2.png" 
+                  alt="Pieach Logo" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} 
+                />
+              </div>
+              {!isCollapsed && (
+                <div>
+                  <div className="logo-name">Pieach</div>
+                  <div className="logo-sub">Admin CMS</div>
+                </div>
+              )}
+            </Link>
+            <button
+              type="button"
+              onClick={toggleCollapse}
+              className="sidebar-toggle-btn"
+              title={isCollapsed ? "Expand Sidebar" : "Minimize Sidebar"}
+            >
+              {isCollapsed ? <Icons.chevronRight className="w-4 h-4" /> : <Icons.chevronLeft className="w-4 h-4" />}
+            </button>
+          </div>
+
+          {renderNavGroup(MAIN_NAV, 'Main')}
+          {renderNavGroup(CAREERS_NAV, 'Careers')}
+          {renderNavGroup(SYSTEM_NAV, 'System')}
+
+          <div className="sidebar-spacer"></div>
+
+          <div className="sidebar-footer">
+            <div className="avatar-circle">AD</div>
             {!isCollapsed && (
               <div>
-                <div className="logo-name">Pieach</div>
-                <div className="logo-sub">Admin CMS</div>
+                <div className="avatar-name">Admin</div>
+                <div className="avatar-role">Super Admin</div>
               </div>
             )}
-          </Link>
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            className="sidebar-toggle-btn"
-            title={isCollapsed ? "Expand Sidebar" : "Minimize Sidebar"}
-          >
-            {isCollapsed ? <Icons.chevronRight className="w-4 h-4" /> : <Icons.chevronLeft className="w-4 h-4" />}
-          </button>
+          </div>
         </div>
+      </aside>
 
-        {renderNavGroup(MAIN_NAV, 'Main')}
-        {renderNavGroup(CAREERS_NAV, 'Careers')}
-        {renderNavGroup(SYSTEM_NAV, 'System')}
-
-        <div className="sidebar-spacer"></div>
-
-        <div className="sidebar-footer">
-          <div className="avatar-circle">AD</div>
-          {!isCollapsed && (
-            <div>
-              <div className="avatar-name">Admin</div>
-              <div className="avatar-role">Super Admin</div>
-            </div>
-          )}
-        </div>
-      </div>
-    </aside>
+      <UnsavedChangesModal
+        isOpen={pendingHref !== null}
+        onStay={handleStay}
+        onDiscard={handleDiscard}
+        onSaveAsDraft={onSaveAsDraft ? handleSaveAsDraft : null}
+      />
+    </>
   );
 }

@@ -12,7 +12,11 @@ export default function ConfirmationModal({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   type = 'info', // 'danger', 'warning', 'info'
-  isLoading = false
+  isLoading = false,
+  showCheckbox = false,
+  checkboxLabel = 'Delete associated media files',
+  checkboxChecked = false,
+  onCheckboxChange = () => {}
 }) {
   if (!isOpen) return null;
 
@@ -121,9 +125,24 @@ export default function ConfirmationModal({
           {title}
         </h3>
         
-        <p className="text-sm text-neutral-400 leading-relaxed mb-8 max-w-sm mx-auto font-sans">
+        <p className="text-sm text-neutral-400 leading-relaxed mb-6 max-w-sm mx-auto font-sans">
           {message}
         </p>
+
+        {showCheckbox && (
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <input 
+              type="checkbox"
+              id="confirm-modal-checkbox"
+              checked={checkboxChecked}
+              onChange={(e) => onCheckboxChange(e.target.checked)}
+              className="w-4 h-4 accent-brand-gold cursor-pointer"
+            />
+            <label htmlFor="confirm-modal-checkbox" className="text-xs text-neutral-300 font-sans cursor-pointer select-none">
+              {checkboxLabel}
+            </label>
+          </div>
+        )}
         
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button

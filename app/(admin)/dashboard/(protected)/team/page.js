@@ -8,16 +8,18 @@ import SearchToolbar from '@/components/shared/SearchToolbar';
 import EmptyState from '@/components/shared/EmptyState';
 import GridToggle from '@/components/shared/GridToggle';
 import { useStore } from '@/hooks/useStore';
-import { teamStore } from '@/lib/store';
+import { teamStore, mediaStore } from '@/lib/store';
 import { useFilterSort } from '@/hooks/useFilterSort';
 import { useViewMode } from '@/hooks/useViewMode';
 import Pagination from '@/components/shared/Pagination';
 import TeamMemberPreview from '@/components/team/TeamMemberPreview';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function TeamPage() {
   const router = useRouter();
   const { data, updateItem, deleteItem } = useStore(teamStore);
+  const { data: mediaData } = useStore(mediaStore);
   
   const { 
     filteredAndSortedData, 
@@ -33,6 +35,8 @@ export default function TeamPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [deleteMediaChecked, setDeleteMediaChecked] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
   const pageSize = 7;
   
   const [selectedMember, setSelectedMember] = useState(null);
@@ -136,6 +140,7 @@ export default function TeamPage() {
       name,
       isBulk: false
     });
+    setDeleteMediaChecked(false);
   };
 
   const handleBulkDeleteClick = () => {
@@ -145,14 +150,33 @@ export default function TeamPage() {
       name: `${selectedIds.length} profiles`,
       isBulk: true
     });
+    setDeleteMediaChecked(false);
   };
 
   const handleConfirmDelete = () => {
+    if (deleteMediaChecked) {
+      const membersToDelete = confirmModal.isBulk 
+        ? data.filter(m => selectedIds.includes(m.id))
+        : data.filter(m => m.id === confirmModal.id);
+        
+      const urlsToDelete = new Set();
+      membersToDelete.forEach(member => {
+        if (member.image) urlsToDelete.add(member.image);
+      });
+
+      const mediaToDelete = mediaData.filter(media => urlsToDelete.has(media.url));
+      mediaToDelete.forEach(media => {
+        mediaStore.deleteItem(media.id);
+      });
+    }
+
     if (confirmModal.isBulk) {
       selectedIds.forEach(id => deleteItem(id));
       setSelectedIds([]);
+      setToast({ message: `${selectedIds.length} team member(s) deleted.`, type: 'success' });
     } else {
       deleteItem(confirmModal.id);
+      setToast({ message: `"${confirmModal.name}" removed from the team.`, type: 'success' });
     }
     setConfirmModal({ isOpen: false, id: null, name: '', isBulk: false });
   };
@@ -521,10 +545,14 @@ export default function TeamPage() {
         title={confirmModal.isBulk ? "Delete Multiple Profiles" : "Delete Team Member"}
         message={confirmModal.isBulk 
           ? `Are you sure you want to permanently delete ${selectedIds.length} selected team profiles? This action cannot be undone.`
-          : `Are you sure you want to delete "${confirmModal.name}"? This profile will be permanently removed from the CMS.`
+          : `Are you sure you want to delete "${confirmModal.name}"? This action cannot be undone.`
         }
         confirmText={confirmModal.isBulk ? `Delete ${selectedIds.length} Profiles` : "Delete Profile"}
         type="danger"
+        showCheckbox={true}
+        checkboxLabel="Delete associated profile photo from Media Gallery"
+        checkboxChecked={deleteMediaChecked}
+        onCheckboxChange={setDeleteMediaChecked}
       />
 
       {isReorderOpen && (
@@ -671,6 +699,7 @@ export default function TeamPage() {
           border-color: var(--gold-dark) !important;
         }
       `}</style>
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

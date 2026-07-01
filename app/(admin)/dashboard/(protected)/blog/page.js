@@ -7,14 +7,16 @@ import { Icons } from '@/components/shared/Icons';
 import StatusPill from '@/components/shared/StatusPill';
 import EmptyState from '@/components/shared/EmptyState';
 import { useStore } from '@/hooks/useStore';
-import { blogStore } from '@/lib/store';
+import { blogStore, mediaStore } from '@/lib/store';
 import { useFilterSort } from '@/hooks/useFilterSort';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
 import BlogPreview from '@/components/blog/BlogPreview';
+import Toast from '@/components/shared/Toast';
 
 export default function BlogPage() {
   const { data, updateItem, deleteItem } = useStore(blogStore);
+  const { data: mediaData } = useStore(mediaStore);
   const { filteredAndSortedData, searchQuery, setSearchQuery } = useFilterSort(data, {}, { key: 'date', order: 'desc' });
   
   const [statusFilter, setStatusFilter] = useState('all');
@@ -29,6 +31,8 @@ export default function BlogPage() {
   const [postToDelete, setPostToDelete] = useState(null);
   const [postToPublish, setPostToPublish] = useState(null);
   const [postToPreview, setPostToPreview] = useState(null);
+  const [deleteMediaChecked, setDeleteMediaChecked] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
 
   // Reset page when filters change
   useEffect(() => {
@@ -63,12 +67,21 @@ export default function BlogPage() {
 
   const handleDeleteClick = (post) => {
     setPostToDelete(post);
+    setDeleteMediaChecked(false);
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = () => {
     if (postToDelete) {
+      if (deleteMediaChecked && postToDelete.image) {
+        const allMedia = mediaData || [];
+        const mediaToDelete = allMedia.filter(media => media.url === postToDelete.image);
+        mediaToDelete.forEach(media => {
+          mediaStore.deleteItem(media.id);
+        });
+      }
       deleteItem(postToDelete.id);
+      setToast({ message: `"${postToDelete.title}" blog post deleted.`, type: 'success' });
       setIsDeleteModalOpen(false);
       setPostToDelete(null);
     }
@@ -297,6 +310,10 @@ export default function BlogPage() {
         message={`Are you sure you want to permanently delete "${postToDelete?.title}"? This action cannot be undone.`}
         confirmText="Delete Permanently"
         type="danger"
+        showCheckbox={true}
+        checkboxLabel="Delete associated cover image from Media Gallery"
+        checkboxChecked={deleteMediaChecked}
+        onCheckboxChange={setDeleteMediaChecked}
       />
 
       <ConfirmationModal 
@@ -316,6 +333,7 @@ export default function BlogPage() {
         onClose={() => setIsPreviewOpen(false)}
         post={postToPreview}
       />
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

@@ -1,14 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProjectForm from '@/components/projects/form/ProjectForm';
 import { useStore } from '@/hooks/useStore';
 import { projectsStore } from '@/lib/store';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 
 export default function NewProjectPage() {
+  const router = useRouter();
   const { createItem } = useStore(projectsStore);
+  const { registerForm, clearForm } = useUnsavedChanges();
+
+  // Ref to the form's "save as draft" trigger so the sidebar modal can invoke it
+  const saveDraftRef = useRef(null);
+
+  useEffect(() => {
+    // Mark form as dirty immediately (page is open = unsaved work exists)
+    registerForm(true, () => {
+      if (saveDraftRef.current) saveDraftRef.current();
+    });
+    return () => clearForm();
+  }, [registerForm, clearForm]);
 
   const handleSubmit = async (projectData, actionType) => {
     const newProject = {
@@ -20,8 +35,10 @@ export default function NewProjectPage() {
     };
     
     createItem(newProject);
+    clearForm();
     
     await new Promise(resolve => setTimeout(resolve, 1500));
+    router.push('/dashboard/projects');
   };
 
   return (
@@ -38,7 +55,7 @@ export default function NewProjectPage() {
         </Link>
       </div>
 
-      <ProjectForm onSubmit={handleSubmit} />
+      <ProjectForm onSubmit={handleSubmit} saveDraftRef={saveDraftRef} />
     </DashboardLayout>
   );
 }

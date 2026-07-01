@@ -10,6 +10,7 @@ import AppointmentReviewPanel from '@/components/appointments/AppointmentReviewP
 import { Icons } from '@/components/shared/Icons';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function AppointmentsListPage() {
   const {
@@ -31,6 +32,7 @@ export default function AppointmentsListPage() {
 
   // Bulk Selection State
   const [selectedIds, setSelectedIds] = useState([]);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
 
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -100,13 +102,16 @@ export default function AppointmentsListPage() {
 
   const handleConfirmDelete = () => {
     if (confirmModal.isBulk) {
+      const count = selectedIds.length;
       selectedIds.forEach(id => deleteAppointment(id));
       setSelectedIds([]);
+      setToast({ message: `${count} appointment(s) deleted.`, type: 'success' });
     } else if (confirmModal.targetId) {
       deleteAppointment(confirmModal.targetId);
       if (selectedIds.includes(confirmModal.targetId)) {
         setSelectedIds(prev => prev.filter(id => id !== confirmModal.targetId));
       }
+      setToast({ message: `Appointment for "${confirmModal.clientName}" deleted.`, type: 'success' });
     }
     setConfirmModal({ isOpen: false, isBulk: false, targetId: null, clientName: '' });
   };
@@ -223,6 +228,7 @@ export default function AppointmentsListPage() {
           type="danger"
         />
       </div>
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

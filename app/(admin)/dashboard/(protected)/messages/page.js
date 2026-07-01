@@ -6,6 +6,7 @@ import { useStore } from '@/hooks/useStore';
 import { messagesStore } from '@/lib/store';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 import Panel from '@/components/panels/Panel';
 
 export default function MessagesPage() {
@@ -24,6 +25,7 @@ export default function MessagesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
   const [msgToDelete, setMsgToDelete] = useState(null);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
 
   // Reset page when filters change
   useEffect(() => {
@@ -101,11 +103,15 @@ export default function MessagesPage() {
 
   const confirmDelete = () => {
     if (isBulkDelete) {
+      const count = selectedIds.length;
       selectedIds.forEach(id => deleteItem(id));
       setSelectedIds([]);
+      setToast({ message: `${count} message(s) deleted.`, type: 'success' });
     } else if (msgToDelete) {
+      const name = `${msgToDelete.firstName} ${msgToDelete.lastName}`;
       deleteItem(msgToDelete.id);
       setMsgToDelete(null);
+      setToast({ message: `Message from ${name} deleted.`, type: 'success' });
     }
     setIsDeleteModalOpen(false);
     setIsBulkDelete(false);
@@ -491,6 +497,7 @@ export default function MessagesPage() {
           to { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

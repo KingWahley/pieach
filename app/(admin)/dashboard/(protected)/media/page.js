@@ -14,6 +14,7 @@ import { useFilterSort } from '@/hooks/useFilterSort';
 import { useViewMode } from '@/hooks/useViewMode';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function MediaPage() {
   const { data, createItem, updateItem, deleteItem } = useStore(mediaStore);
@@ -51,6 +52,7 @@ export default function MediaPage() {
   // Confirmation Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isBulkDelete, setIsBulkDelete] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAndSortedData.length / pageSize);
@@ -90,12 +92,16 @@ export default function MediaPage() {
 
   const confirmDelete = () => {
     if (isBulkDelete) {
+      const count = selectedIds.length;
       selectedIds.forEach(id => deleteItem(id));
       setSelectedIds([]);
       setIsBulkDelete(false);
+      setToast({ message: `${count} asset(s) deleted from Media Library.`, type: 'success' });
     } else if (selectedFile) {
+      const name = selectedFile.filename || selectedFile.name || 'file';
       deleteItem(selectedFile.id);
       setSelectedFile(null);
+      setToast({ message: `"${name}" deleted from Media Library.`, type: 'success' });
     }
     setIsDeleteModalOpen(false);
   };
@@ -551,6 +557,7 @@ export default function MediaPage() {
         confirmText={isBulkDelete ? `Delete ${selectedIds.length} Assets` : "Delete Permanently"}
         type="danger"
       />
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

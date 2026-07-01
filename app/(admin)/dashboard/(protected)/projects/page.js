@@ -8,17 +8,19 @@ import SearchToolbar from '@/components/shared/SearchToolbar';
 import EmptyState from '@/components/shared/EmptyState';
 import GridToggle from '@/components/shared/GridToggle';
 import { useStore } from '@/hooks/useStore';
-import { projectsStore, projectCategoriesStore } from '@/lib/store';
+import { projectsStore, projectCategoriesStore, mediaStore } from '@/lib/store';
 import { useFilterSort } from '@/hooks/useFilterSort';
 import Link from 'next/link';
 import { useViewMode } from '@/hooks/useViewMode';
 import Pagination from '@/components/shared/Pagination';
 import ProjectPreview from '@/components/projects/ProjectPreview';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
 
 export default function ProjectsPage() {
   const { data, deleteItem } = useStore(projectsStore);
   const { data: projectCategories } = useStore(projectCategoriesStore);
+  const { data: mediaData } = useStore(mediaStore);
   const { filteredAndSortedData, searchQuery, setSearchQuery, filters, updateFilter } = useFilterSort(data, { category: 'all' }, { key: 'date', order: 'desc' });
   
   const [view, setView] = useViewMode();
@@ -26,6 +28,8 @@ export default function ProjectsPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [deleteMediaChecked, setDeleteMediaChecked] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
   const pageSize = 7;
 
   // Confirmation Modal State
@@ -75,6 +79,7 @@ export default function ProjectsPage() {
       title,
       isBulk: false
     });
+    setDeleteMediaChecked(false);
   };
 
   const handleBulkDeleteClick = () => {
@@ -84,14 +89,39 @@ export default function ProjectsPage() {
       title: `${selectedIds.length} projects`,
       isBulk: true
     });
+    setDeleteMediaChecked(false);
   };
 
   const handleConfirmDelete = () => {
+    if (deleteMediaChecked) {
+      const projectsToDelete = confirmModal.isBulk 
+        ? data.filter(p => selectedIds.includes(p.id))
+        : data.filter(p => p.id === confirmModal.id);
+        
+      const urlsToDelete = new Set();
+      projectsToDelete.forEach(project => {
+        if (project.image) urlsToDelete.add(project.image);
+        if (project.gallery && Array.isArray(project.gallery)) {
+          project.gallery.forEach(img => {
+            const url = typeof img === 'string' ? img : (img.url || img.previewUrl);
+            if (url) urlsToDelete.add(url);
+          });
+        }
+      });
+
+      const mediaToDelete = mediaData.filter(media => urlsToDelete.has(media.url));
+      mediaToDelete.forEach(media => {
+        mediaStore.deleteItem(media.id);
+      });
+    }
+
     if (confirmModal.isBulk) {
       selectedIds.forEach(id => deleteItem(id));
       setSelectedIds([]);
+      setToast({ message: `${selectedIds.length} project(s) deleted successfully.`, type: 'success' });
     } else {
       deleteItem(confirmModal.id);
+      setToast({ message: `"${confirmModal.title}" deleted successfully.`, type: 'success' });
     }
     setConfirmModal({ isOpen: false, id: null, title: '', isBulk: false });
   };
@@ -368,12 +398,17 @@ export default function ProjectsPage() {
         onConfirm={handleConfirmDelete}
         title={confirmModal.isBulk ? "Delete Multiple Projects" : "Delete Project"}
         message={confirmModal.isBulk 
-          ? `Are you sure you want to permanently delete ${selectedIds.length} selected projects? This action cannot be undone and will remove all associated media files.`
-          : `Are you sure you want to delete "${confirmModal.title}"? This project and its associated media will be permanently removed.`
+          ? `Are you sure you want to permanently delete ${selectedIds.length} selected projects? This action cannot be undone.`
+          : `Are you sure you want to delete "${confirmModal.title}"? This action cannot be undone.`
         }
         confirmText={confirmModal.isBulk ? `Delete ${selectedIds.length} Projects` : "Delete Project"}
         type="danger"
+        showCheckbox={true}
+        checkboxLabel="Delete associated media files from Media Gallery"
+        checkboxChecked={deleteMediaChecked}
+        onCheckboxChange={setDeleteMediaChecked}
       />
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />
     </DashboardLayout>
   );
 }

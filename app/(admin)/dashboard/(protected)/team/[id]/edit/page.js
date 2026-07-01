@@ -6,11 +6,13 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import TeamMemberForm from '@/components/team/form/TeamMemberForm';
 import { useStore } from '@/hooks/useStore';
 import { teamStore } from '@/lib/store';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 
 export default function EditTeamMemberPage() {
   const router = useRouter();
   const { id } = useParams();
   const { data } = useStore(teamStore);
+  const { registerForm, clearForm } = useUnsavedChanges();
   
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,18 @@ export default function EditTeamMemberPage() {
       setLoading(false);
     }
   }, [id, data]);
+
+  // Register dirty once member is resolved
+  useEffect(() => {
+    if (!member) return;
+    registerForm(true, null);
+    return () => clearForm();
+  }, [member, registerForm, clearForm]);
+
+  const handleCancel = () => {
+    clearForm();
+    router.push('/dashboard/team');
+  };
 
   if (loading) {
     return (
@@ -62,7 +76,7 @@ export default function EditTeamMemberPage() {
           <h1>Edit Team Member</h1>
           <p>Update the entry for the team member.</p>
         </div>
-        <button className="secondary-btn" onClick={() => router.push('/dashboard/team')}>Cancel</button>
+        <button className="secondary-btn" onClick={handleCancel}>Cancel</button>
       </div>
 
       <TeamMemberForm mode="edit" initialData={member} />

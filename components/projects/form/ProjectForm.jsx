@@ -209,7 +209,7 @@ function PublishingOverlay({ projectTitle, onDone }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main form
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ProjectForm({ mode = 'create', initialData = null, onSubmit }) {
+export default function ProjectForm({ mode = 'create', initialData = null, onSubmit, saveDraftRef }) {
   const router = useRouter();
   const { data: categories } = useStore(projectCategoriesStore);
 
@@ -362,6 +362,17 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
       executeAction('draft');
     }
   };
+
+  // Expose draft-save trigger to parent (for the unsaved-changes guard)
+  useEffect(() => {
+    if (saveDraftRef) {
+      saveDraftRef.current = () => handleAction('draft');
+    }
+    return () => {
+      if (saveDraftRef) saveDraftRef.current = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveDraftRef]);
 
   const handleOverlayDone = () => router.push('/dashboard/projects');
 

@@ -1,18 +1,21 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProjectForm from '@/components/projects/form/ProjectForm';
 import { useStore } from '@/hooks/useStore';
 import { projectsStore } from '@/lib/store';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 
 export default function EditProjectPage() {
   const { id } = useParams();
   const router = useRouter();
   const { data, getItemById, updateItem } = useStore(projectsStore);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const { registerForm, clearForm } = useUnsavedChanges();
+  const saveDraftRef = useRef(null);
 
   useEffect(() => {
     if (data.length > 0) {
@@ -25,6 +28,15 @@ export default function EditProjectPage() {
 
   const project = useMemo(() => getItemById(id), [id, data, getItemById]);
 
+  // Register as dirty once the project has loaded
+  useEffect(() => {
+    if (!hasLoaded || !project) return;
+    registerForm(true, () => {
+      if (saveDraftRef.current) saveDraftRef.current();
+    });
+    return () => clearForm();
+  }, [hasLoaded, project, registerForm, clearForm]);
+
   const handleSubmit = async (projectData, actionType) => {
     const updatedProject = {
       ...projectData,
@@ -36,8 +48,10 @@ export default function EditProjectPage() {
     };
     
     updateItem(id, updatedProject);
+    clearForm();
     
     await new Promise(resolve => setTimeout(resolve, 1500));
+    router.push('/dashboard/projects');
   };
 
   if (!hasLoaded) {
@@ -76,7 +90,7 @@ export default function EditProjectPage() {
         </Link>
       </div>
 
-      <ProjectForm mode="edit" initialData={project} onSubmit={handleSubmit} />
+      <ProjectForm mode="edit" initialData={project} onSubmit={handleSubmit} saveDraftRef={saveDraftRef} />
     </DashboardLayout>
   );
 }
