@@ -6,9 +6,23 @@ import { usePathname } from "next/navigation";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 
+const getPageName = (path) => {
+  if (path === "/") return "Home";
+  if (path.startsWith("/about")) return "About Us";
+  if (path.startsWith("/team")) return "The Team";
+  if (path.startsWith("/services")) return "Services";
+  if (path.startsWith("/projects")) return "Projects";
+  if (path.startsWith("/careers")) return "Careers";
+  if (path.startsWith("/blog")) return "Blog";
+  if (path.startsWith("/contact")) return "Contact";
+  if (path.startsWith("/book-appointment")) return "Appointment";
+  return "Pieach";
+};
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
+  const [isIdle, setIsIdle] = useState(false);
   const pathname = usePathname();
   const headerRef = useRef(null);
   const backdropRef = useRef(null);
@@ -28,6 +42,37 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsIdle(false);
+      return;
+    }
+
+    let timeoutId;
+    const resetTimer = () => {
+      setIsIdle(false);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsIdle(true);
+      }, 4000); // 4 seconds idle duration
+    };
+
+    const events = ["scroll", "mousemove", "mousedown", "touchstart", "click", "keypress"];
+    
+    resetTimer();
+
+    events.forEach(event => {
+      window.addEventListener(event, resetTimer, { passive: true });
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [isOpen]);
 
   useGSAP(() => {
     // Header entry animation
@@ -217,9 +262,49 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Top Bar */}
+      <div 
+        className={`fixed top-0 left-0 right-0 z-50 h-20 bg-[#0A0F14]/95 backdrop-blur-md border-b border-brand-gold/15 flex items-center justify-between px-6 lg:hidden transition-all duration-500 transform ${
+          isIdle ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
+        }`}
+      >
+        {/* Left: Logo */}
+        <Link href="/" className="transition-opacity hover:opacity-80 flex items-center">
+          <img 
+            src="/images/mainlogo2.png" 
+            alt="PIEACH Logo" 
+            className="h-10 w-auto object-contain"
+          />
+        </Link>
+
+        {/* Center: Current Page Name */}
+        <div className="absolute left-1/2 -translate-x-1/2 font-serif text-sm tracking-widest uppercase text-brand-gold font-medium text-center">
+          {getPageName(pathname)}
+        </div>
+
+        {/* Right: Hamburger button */}
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle Menu"
+          className="p-3 text-white hover:text-brand-gold focus:outline-none cursor-pointer transition-colors relative z-50"
+        >
+          <div className="relative w-5 h-4 flex flex-col justify-between items-center">
+            <span className={`block h-[2px] w-5 bg-current rounded-full transition-all duration-300 transform origin-center ${
+              isOpen ? "rotate-45 translate-y-[7px]" : ""
+            }`} />
+            <span className={`block h-[2px] w-5 bg-current rounded-full transition-all duration-300 transform ${
+              isOpen ? "opacity-0 scale-x-0" : ""
+            }`} />
+            <span className={`block h-[2px] w-5 bg-current rounded-full transition-all duration-300 transform origin-center ${
+              isOpen ? "-rotate-45 -translate-y-[7px]" : ""
+            }`} />
+          </div>
+        </button>
+      </div>
+
       <header 
         ref={headerRef} 
-        className="fixed top-0 z-50 flex w-full flex-col items-start justify-between gap-4 px-5 sm:px-8 lg:px-12 pointer-events-none"
+        className="fixed top-0 z-50 hidden lg:flex w-full flex-col items-start justify-between gap-4 px-5 sm:px-8 lg:px-12 pointer-events-none"
       >
         <div className="mx-auto flex w-full max-w-[1600px] flex-col items-stretch relative pointer-events-auto">
           <div className="flex w-full items-start justify-between">
@@ -311,30 +396,6 @@ export default function Navbar() {
               </div>
             </nav>
 
-            {/* Mobile Hamburger Button */}
-            <button 
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle Menu"
-              className={`mt-4 ml-auto rounded-full backdrop-blur lg:hidden transition-all duration-500 p-4 focus:outline-none cursor-pointer z-50 relative ${
-                isOpen
-                  ? 'border-white/20 bg-white/10 text-white hover:bg-white/20'
-                  : isScrolledPastHero
-                    ? 'border-[#111]/20 bg-white text-[#111] shadow-lg hover:bg-neutral-100'
-                    : 'border-white/50 bg-white/10 text-white hover:bg-white/20'
-              }`}
-            >
-              <div className="relative w-5 h-4 flex flex-col justify-between items-center">
-                <span className={`block h-[2px] w-5 bg-current rounded-full transition-all duration-300 transform origin-center ${
-                  isOpen ? "rotate-45 translate-y-[7px]" : ""
-                }`} />
-                <span className={`block h-[2px] w-5 bg-current rounded-full transition-all duration-300 transform ${
-                  isOpen ? "opacity-0 scale-x-0" : ""
-                }`} />
-                <span className={`block h-[2px] w-5 bg-current rounded-full transition-all duration-300 transform origin-center ${
-                  isOpen ? "-rotate-45 -translate-y-[7px]" : ""
-                }`} />
-              </div>
-            </button>
           </div>
         </div>
       </header>

@@ -28,23 +28,34 @@ export default async function BlogPage() {
       {/* 1. Category Tags Bar */}
       <div className="w-full bg-[#F9F7F5] border-b border-[#E5DCD3] py-4">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer">
+          <style dangerouslySetInnerHTML={{__html: `
+            .tags-container::-webkit-scrollbar {
+              display: none;
+            }
+          `}} />
+          <div 
+            className="tags-container flex flex-nowrap items-center justify-start md:justify-center overflow-x-auto whitespace-nowrap gap-x-8 py-1"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
               PRACTICE
             </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer">
+            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
               SUSTAINABILITY
             </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer">
+            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
               INTERIOR DESIGN
             </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer">
+            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
               URBAN PLANNING
             </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer">
+            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
               DESIGN THEORY
             </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer">
+            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
               PROJECT RUNNING
             </span>
           </div>
