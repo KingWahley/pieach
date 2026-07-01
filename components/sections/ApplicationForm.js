@@ -15,6 +15,8 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
   const [coverFile, setCoverFile] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
   
   const cvInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -22,11 +24,17 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleCvChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setCvFile(e.target.files[0]);
+      if (errors.cvFile) {
+        setErrors((prev) => ({ ...prev, cvFile: "" }));
+      }
     }
   };
 
@@ -38,8 +46,35 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email || !cvFile) {
-      alert("Please fill in your name, email, and upload your CV.");
+    setSubmitError("");
+    
+    const newErrors = {};
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required.";
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = "Email address is required.";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        newErrors.email = "Please enter a valid email address.";
+      }
+    }
+    
+    if (!cvFile) {
+      newErrors.cvFile = "Please upload your resume (PDF).";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      // Scroll to the first error element for good UX
+      const firstErrorKey = Object.keys(newErrors)[0];
+      const errorEl = document.getElementsByName(firstErrorKey)[0] || cvInputRef.current;
+      if (errorEl) {
+        errorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (errorEl.focus) errorEl.focus();
+      }
       return;
     }
 
@@ -96,12 +131,12 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
         }]);
 
       if (error) {
-        alert("Submission failed: " + error.message);
+        setSubmitError("Submission failed: " + error.message);
       } else {
         setIsSubmitted(true);
       }
     } catch (err) {
-      alert("An error occurred during submission: " + err.message);
+      setSubmitError("An error occurred during submission: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -139,7 +174,7 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-8">
+    <form onSubmit={handleSubmit} noValidate className="max-w-3xl mx-auto space-y-8">
       
       {/* 2-Column text input fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -153,9 +188,18 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
             name="fullName"
             value={formData.fullName}
             onChange={handleInputChange}
-            required
-            className="w-full bg-transparent border border-white/20 text-white focus:border-[#c5a880] focus:outline-none px-4 py-3.5 font-sans text-sm rounded-none transition duration-200"
+            className={`w-full bg-transparent border text-white focus:border-[#c5a880] focus:outline-none px-4 py-3.5 font-sans text-sm rounded-none transition duration-200 ${
+              errors.fullName ? 'border-red-500/80 focus:border-red-500' : 'border-white/20'
+            }`}
           />
+          {errors.fullName && (
+            <p className="text-red-500 text-xs font-sans mt-1.5 flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              {errors.fullName}
+            </p>
+          )}
         </div>
 
         {/* Email Address */}
@@ -168,9 +212,18 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            required
-            className="w-full bg-transparent border border-white/20 text-white focus:border-[#c5a880] focus:outline-none px-4 py-3.5 font-sans text-sm rounded-none transition duration-200"
+            className={`w-full bg-transparent border text-white focus:border-[#c5a880] focus:outline-none px-4 py-3.5 font-sans text-sm rounded-none transition duration-200 ${
+              errors.email ? 'border-red-500/80 focus:border-red-500' : 'border-white/20'
+            }`}
           />
+          {errors.email && (
+            <p className="text-red-500 text-xs font-sans mt-1.5 flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              {errors.email}
+            </p>
+          )}
         </div>
       </div>
 
@@ -181,7 +234,9 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
         </label>
         <div 
           onClick={() => cvInputRef.current.click()}
-          className="border border-dashed border-white/20 hover:border-[#c5a880]/30 rounded-none transition duration-300 py-12 px-4 text-center cursor-pointer relative bg-white/[0.01]"
+          className={`border border-dashed rounded-none transition duration-300 py-12 px-4 text-center cursor-pointer relative bg-white/[0.01] ${
+            errors.cvFile ? 'border-red-500/80 hover:border-red-500/60' : 'border-white/20 hover:border-[#c5a880]/30'
+          }`}
         >
           <input 
             type="file"
@@ -213,6 +268,14 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
             )}
           </div>
         </div>
+        {errors.cvFile && (
+          <p className="text-red-500 text-xs font-sans mt-1.5 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            {errors.cvFile}
+          </p>
+        )}
       </div>
 
       {/* File Upload zone 2: Letter of Intent */}
@@ -255,6 +318,16 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
           </div>
         </div>
       </div>
+
+      {/* Submit Error */}
+      {submitError && (
+        <div className="bg-red-950/40 border border-red-500/30 text-red-200 px-4 py-3 rounded-none text-sm font-sans flex items-start space-x-2">
+          <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <span>{submitError}</span>
+        </div>
+      )}
 
       {/* Submit Button */}
       <div className="text-center pt-6">
