@@ -54,21 +54,23 @@ export default function PhilosophyQuoteSection() {
   }, { scope: containerRef });
 
   return (
-    <section 
+    <section
       ref={containerRef}
       className="bg-brand-brown text-white py-24 lg:py-32 overflow-hidden border-t border-b border-white/5 relative"
     >
-      
       {/* Decorative subtle visual elements */}
       <div className="absolute top-1/2 left-10 transform -translate-y-1/2 font-serif text-8xl pointer-events-none select-none hidden lg:block">
-        <span className="quote-symbol-l inline-block text-white/5 origin-center">“</span>
+        <span className="quote-symbol-l inline-block text-white/5 origin-center">
+          “
+        </span>
       </div>
       <div className="absolute top-1/2 right-10 transform -translate-y-1/2 font-serif text-8xl pointer-events-none select-none hidden lg:block">
-        <span className="quote-symbol-r inline-block text-white/5 origin-center">”</span>
+        <span className="quote-symbol-r inline-block text-white/5 origin-center">
+          ”
+        </span>
       </div>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        
         {/* Subtitle */}
         <span className="quote-subtitle font-sans font-bold text-xs uppercase tracking-[0.25em] text-brand-gold mb-6 block">
           Philosophy
@@ -76,7 +78,8 @@ export default function PhilosophyQuoteSection() {
 
         {/* Large Quote */}
         <blockquote className="quote-text font-serif italic text-2xl sm:text-4xl lg:text-4xl tracking-tight leading-relaxed mb-8 max-w-4xl mx-auto text-neutral-100">
-          "Architecture should create harmony between people, space, and the environment."
+          Without an architecture of our own, we have no soul of our own
+          civilization.
         </blockquote>
 
         {/* Divider line */}
@@ -84,9 +87,8 @@ export default function PhilosophyQuoteSection() {
 
         {/* Author */}
         <cite className="quote-author font-sans font-bold text-xs uppercase tracking-[0.2em] text-white not-italic block">
-          Olumide George, Principal
+          Frank Lloyd Wright
         </cite>
-
       </div>
     </section>
   );
