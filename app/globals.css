@@ -361,6 +361,18 @@ body:has(.dashboard-body) {
   width: 100%; text-align: left; transition: all 0.15s;
 }
 .nav-item:hover { background: var(--nav-hover); }
+.nav-item.logout-item {
+  color: #ffffff !important;
+  background: #ef4444 !important;
+}
+.nav-item.logout-item:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+.nav-item.logout-item .nav-icon {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
 .nav-item.active { background: var(--nav-active-bg); color: var(--nav-active-text); font-weight: bold; }
 .nav-label {
   flex: 1;

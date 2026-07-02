@@ -16,7 +16,7 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function ProjectsPageClient({ initialProjects }) {
+export default function ProjectsPageClient({ initialProjects, categories = [] }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [hasScrolledIn, setHasScrolledIn] = useState(false);
 
@@ -25,28 +25,34 @@ export default function ProjectsPageClient({ initialProjects }) {
   const featuredRef = useRef(null);
   const statsRef = useRef(null);
 
+  // Get active categories: categories that exist in project_categories AND are tagged in at least one project
+  const activeCategories = (categories || []).filter(cat => {
+    const catNameLower = cat.name.trim().toLowerCase();
+    return initialProjects.some(p => {
+      const pCats = p.category ? p.category.split(',').map(s => s.trim().toLowerCase()) : [];
+      return pCats.includes(catNameLower);
+    });
+  });
+
   const filterTabs = [
     { id: "all", label: "ALL" },
-    { id: "residential", label: "RESIDENTIAL" },
-    { id: "commercial", label: "COMMERCIAL" },
-    { id: "hospitality", label: "HOSPITALITY" },
-    { id: "masterplanning", label: "MASTERPLANNING" },
-    { id: "sustainable", label: "SUSTAINABLE" },
+    ...activeCategories.map(cat => ({
+      id: cat.name.trim().toLowerCase(),
+      label: cat.name.trim().toUpperCase()
+    }))
   ];
 
   const filteredProjects = activeFilter === "all"
     ? initialProjects
     : initialProjects.filter((p) => {
         if (!p) return false;
-        if (p.groups && p.groups.includes(activeFilter)) return true;
         
-        // Fallback: match by category text (case-insensitive substring check)
-        const cat = (p.category || "").toLowerCase();
-        if (activeFilter === "residential" && cat.includes("residential")) return true;
-        if (activeFilter === "commercial" && cat.includes("commercial")) return true;
-        if (activeFilter === "hospitality" && cat.includes("hospitality")) return true;
-        if (activeFilter === "masterplanning" && (cat.includes("masterplanning") || cat.includes("master planning") || cat.includes("planning"))) return true;
-        if (activeFilter === "sustainable" && (cat.includes("sustainable") || cat.includes("sustainability"))) return true;
+        // Split project category string into array and check if activeFilter matches
+        const pCats = p.category ? p.category.split(',').map(s => s.trim().toLowerCase()) : [];
+        if (pCats.includes(activeFilter)) return true;
+        
+        // Fallback: check p.groups
+        if (p.groups && p.groups.includes(activeFilter)) return true;
         
         return false;
       });

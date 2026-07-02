@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { MAIN_NAV, CAREERS_NAV, SYSTEM_NAV } from '@/constants/navigation';
 import { Icons } from '@/components/shared/Icons';
 import Lenis from 'lenis';
+import { supabase } from '@/lib/supabase/client';
 
 import { useStore } from '@/hooks/useStore';
 import { 
@@ -17,6 +18,7 @@ import {
 } from '@/lib/store';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -28,6 +30,7 @@ export default function Sidebar() {
   // Unsaved changes guard
   const { isDirty, onSaveAsDraft, clearForm } = useUnsavedChanges();
   const [pendingHref, setPendingHref] = useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Called for every sidebar nav link click
   const handleNavClick = useCallback((e, href) => {
@@ -39,19 +42,40 @@ export default function Sidebar() {
 
   const handleStay = () => setPendingHref(null);
 
+  const handleLogout = useCallback(async () => {
+    try {
+      document.cookie = 'pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
+      document.cookie = 'pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
+      sessionStorage.removeItem('pieach_active_session');
+      await supabase.auth.signOut();
+      router.push('/dashboard/login');
+      router.refresh();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  }, [router]);
+
   const handleDiscard = () => {
     clearForm();
     const href = pendingHref;
     setPendingHref(null);
-    router.push(href);
+    if (href === '/dashboard/login-logout-action') {
+      handleLogout();
+    } else {
+      router.push(href);
+    }
   };
 
   const handleSaveAsDraft = () => {
-    if (onSaveAsDraft) onSaveAsDraft();
+    if (onSaveAsDraft?.fn) onSaveAsDraft.fn();
     clearForm();
     const href = pendingHref;
     setPendingHref(null);
-    router.push(href);
+    if (href === '/dashboard/login-logout-action') {
+      handleLogout();
+    } else {
+      router.push(href);
+    }
   };
 
   useEffect(() => {
@@ -186,9 +210,16 @@ export default function Sidebar() {
             <Link 
               key={item.label} 
               href={item.href || '#'} 
-              className={`nav-item ${isActive ? 'active' : ''}`}
+              className={`nav-item ${isActive ? 'active' : ''} ${item.isLogout ? 'logout-item' : ''}`}
               title={isCollapsed ? item.label : undefined}
-              onClick={(e) => handleNavClick(e, item.href)}
+              onClick={(e) => {
+                if (item.isLogout) {
+                  e.preventDefault();
+                  setShowLogoutConfirm(true);
+                } else {
+                  handleNavClick(e, item.href);
+                }
+              }}
             >
               {Icon && <Icon className="nav-icon" />}
               {!isCollapsed && <span className="nav-label">{item.label}</span>}
@@ -253,6 +284,24 @@ export default function Sidebar() {
         onStay={handleStay}
         onDiscard={handleDiscard}
         onSaveAsDraft={onSaveAsDraft ? handleSaveAsDraft : null}
+      />
+
+      <ConfirmationModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={async () => {
+          setShowLogoutConfirm(false);
+          if (isDirty) {
+            setPendingHref('/dashboard/login-logout-action');
+          } else {
+            await handleLogout();
+          }
+        }}
+        title="Confirm Logout"
+        message="Are you sure you want to sign out of the Admin Portal?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        type="warning"
       />
     </>
   );

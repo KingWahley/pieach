@@ -82,10 +82,7 @@ export default async function ProjectDetailsPage({ params }) {
     return false;
   }).slice(0, 3);
 
-  if (related.length < 3) {
-    const remaining = (allProjects || []).filter(p => !related.some(r => r.slug === p.slug));
-    related.push(...remaining.slice(0, 3 - related.length));
-  }
+
 
   return (
     <div className="bg-white text-neutral-900">
@@ -251,54 +248,56 @@ export default async function ProjectDetailsPage({ params }) {
         </div>
       </section>
 
-      {/* 4. Related Projects Section */}
-      <section className="py-20 lg:py-24 bg-[#fafafa] text-neutral-900">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          
-          <div className="flex justify-between items-end mb-12">
-            <h2 className="font-serif text-3xl sm:text-4xl text-neutral-950 tracking-tight leading-none uppercase">
-              Related Projects
-            </h2>
-            <Link 
-              href="/projects"
-              className="font-sans font-bold text-xs uppercase tracking-widest text-brand-gold hover:text-brand-gold-hover transition duration-200"
-            >
-              View All
-            </Link>
-          </div>
-
-          {/* 3-Column Related Projects Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {related.map((proj) => (
-              <Link
-                key={proj.id}
-                href={`/projects/${proj.slug}`}
-                className="group flex flex-col justify-between border border-neutral-200/40 bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300"
+      {/* 4. Related Projects Section — only shown when tag-matched projects exist */}
+      {related.length > 0 && (
+        <section className="py-20 lg:py-24 bg-[#fafafa] text-neutral-900">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            
+            <div className="flex justify-between items-end mb-12">
+              <h2 className="font-serif text-3xl sm:text-4xl text-neutral-950 tracking-tight leading-none uppercase">
+                Related Projects
+              </h2>
+              <Link 
+                href="/projects"
+                className="font-sans font-bold text-xs uppercase tracking-widest text-brand-gold hover:text-brand-gold-hover transition duration-200"
               >
-                {/* Image Container with zoom effect */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center zoom-effect"
-                    style={{ backgroundImage: `url('${proj.image}')` }}
-                  />
-                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300" />
-                </div>
-
-                {/* Text Description */}
-                <div className="p-6">
-                  <span className="font-sans font-bold text-[9px] tracking-widest text-brand-gold uppercase block mb-1">
-                    {proj.category}
-                  </span>
-                  <h3 className="font-sans font-bold text-sm text-neutral-900 uppercase tracking-wide leading-snug">
-                    {proj.title}
-                  </h3>
-                </div>
+                View All
               </Link>
-            ))}
-          </div>
+            </div>
 
-        </div>
-      </section>
+            {/* 3-Column Related Projects Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {related.map((proj) => (
+                <Link
+                  key={proj.id}
+                  href={`/projects/${proj.slug}`}
+                  className="group flex flex-col justify-between border border-neutral-200/40 bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300"
+                >
+                  {/* Image Container with zoom effect */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center zoom-effect"
+                      style={{ backgroundImage: `url('${proj.image}')` }}
+                    />
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300" />
+                  </div>
+
+                  {/* Text Description */}
+                  <div className="p-6">
+                    <span className="font-sans font-bold text-[9px] tracking-widest text-brand-gold uppercase block mb-1">
+                      {proj.category}
+                    </span>
+                    <h3 className="font-sans font-bold text-sm text-neutral-900 uppercase tracking-wide leading-snug">
+                      {proj.title}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+          </div>
+        </section>
+      )}
 
       {/* 5. Team Quote Section (Reused component) */}
       <TeamQuoteSection />

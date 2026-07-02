@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Icons } from '@/components/shared/Icons';
 import { useStore } from '@/hooks/useStore';
@@ -9,6 +9,7 @@ import { useFilterSort } from '@/hooks/useFilterSort';
 import StatusPill from '@/components/shared/StatusPill';
 import VacancyForm from '@/components/forms/VacancyForm';
 import Link from 'next/link';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
 
 import { useViewMode } from '@/hooks/useViewMode';
 import GridToggle from '@/components/shared/GridToggle';
@@ -22,6 +23,8 @@ export default function VacanciesPage() {
   const { data: applications } = useStore(jobApplicationsStore);
   const [view, setView] = useViewMode();
   const { filteredAndSortedData, searchQuery, setSearchQuery, filters, updateFilter } = useFilterSort(vacancies, { status: 'all' }, { key: 'datePosted', order: 'desc' });
+  const { registerForm, clearForm } = useUnsavedChanges();
+  const saveDraftRef = useRef(null);
   
   const [selectedVacancy, setSelectedVacancy] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,6 +38,16 @@ export default function VacanciesPage() {
   const [vacancyToDelete, setVacancyToDelete] = useState(null);
   const [toast, setToast] = useState({ message: '', type: 'success' });
 
+  useEffect(() => {
+    if (isEditing) {
+      registerForm(true, () => {
+        if (saveDraftRef.current) saveDraftRef.current();
+      });
+    } else {
+      clearForm();
+    }
+  }, [isEditing, registerForm, clearForm]);
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -47,6 +60,7 @@ export default function VacanciesPage() {
   };
 
   const handleCloseForm = () => {
+    clearForm();
     setSelectedVacancy(null);
     setIsEditing(false);
   };
@@ -57,6 +71,7 @@ export default function VacanciesPage() {
     } else {
       updateItem(selectedVacancy.id, finalData);
     }
+    clearForm();
     handleCloseForm();
   };
 
@@ -108,6 +123,7 @@ export default function VacanciesPage() {
           isNew={isNew}
           onSave={handleSave}
           onCancel={handleCloseForm}
+          saveDraftRef={saveDraftRef}
         />
       </DashboardLayout>
     );

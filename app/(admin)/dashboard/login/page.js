@@ -12,10 +12,37 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const [stayLoggedIn, setStayLoggedIn] = useState(false);
+
   useEffect(() => {
-    // Clear cookie and session on load to ensure clean state
-    document.cookie = 'pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
-  }, []);
+    const checkSession = async () => {
+      const isStayLoggedInCookie = document.cookie.includes('pieach_stay_logged_in=true');
+      const isActiveSession = sessionStorage.getItem('pieach_active_session') === 'true';
+
+      if (isStayLoggedInCookie || isActiveSession) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          if (isStayLoggedInCookie) {
+            const maxAge = 30 * 24 * 60 * 60; // 30 days
+            document.cookie = `pieach_session=${session.access_token}; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
+          } else {
+            document.cookie = `pieach_session=${session.access_token}; path=/; Secure; SameSite=Lax`;
+          }
+          router.push('/dashboard');
+          router.refresh();
+          return;
+        }
+      }
+
+      // Clean state if we shouldn't be logged in
+      document.cookie = 'pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
+      document.cookie = 'pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
+      sessionStorage.removeItem('pieach_active_session');
+      await supabase.auth.signOut();
+    };
+    
+    checkSession();
+  }, [router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,9 +67,16 @@ export default function LoginPage() {
       }
 
       if (data?.session) {
-        // Set the session cookie
-        const maxAge = data.session.expires_in || 3600;
-        document.cookie = `pieach_session=${data.session.access_token}; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
+        sessionStorage.setItem('pieach_active_session', 'true');
+        
+        if (stayLoggedIn) {
+          const maxAge = 30 * 24 * 60 * 60; // 30 days
+          document.cookie = `pieach_session=${data.session.access_token}; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
+          document.cookie = `pieach_stay_logged_in=true; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
+        } else {
+          document.cookie = `pieach_session=${data.session.access_token}; path=/; Secure; SameSite=Lax`;
+          document.cookie = `pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax`;
+        }
         
         router.push('/dashboard');
         router.refresh();
@@ -115,6 +149,27 @@ export default function LoginPage() {
                 placeholder="••••••••"
               />
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <input
+                id="stay-logged-in"
+                name="stay-logged-in"
+                type="checkbox"
+                checked={stayLoggedIn}
+                onChange={(e) => setStayLoggedIn(e.target.checked)}
+                className="h-4 w-4 rounded-sm border border-white/10 bg-neutral-950/80 text-brand-gold focus:ring-brand-gold focus:ring-offset-neutral-900 cursor-pointer"
+              />
+              <label htmlFor="stay-logged-in" className="ml-2 block text-[10px] font-bold text-brand-gold uppercase tracking-wider cursor-pointer">
+                Stay logged in on this device
+              </label>
+            </div>
+            {stayLoggedIn && (
+              <div className="rounded-sm bg-amber-950/30 border border-amber-500/20 p-3 text-[11px] leading-relaxed text-amber-200/90 font-sans">
+                <span className="font-semibold text-brand-gold">WARNING:</span> Please ensure this is a trusted device before choosing to maintain your login session.
+              </div>
+            )}
           </div>
 
           <div>

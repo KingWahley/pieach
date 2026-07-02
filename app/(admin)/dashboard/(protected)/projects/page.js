@@ -21,7 +21,7 @@ export default function ProjectsPage() {
   const { data, deleteItem } = useStore(projectsStore);
   const { data: projectCategories } = useStore(projectCategoriesStore);
   const { data: mediaData } = useStore(mediaStore);
-  const { filteredAndSortedData, searchQuery, setSearchQuery, filters, updateFilter } = useFilterSort(data, { category: 'all' }, { key: 'date', order: 'desc' });
+  const { filteredAndSortedData, searchQuery, setSearchQuery, filters, updateFilter } = useFilterSort(data, { category: 'all', visibility: 'all' }, { key: 'date', order: 'desc' });
   
   const [view, setView] = useViewMode();
   const [currentPage, setCurrentPage] = useState(1);
@@ -178,6 +178,11 @@ export default function ProjectsPage() {
         <select className="filter-select" value={filters.category || 'all'} onChange={(e) => updateFilter('category', e.target.value)}>
           {filterOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
+        <select className="filter-select" value={filters.visibility || 'all'} onChange={(e) => updateFilter('visibility', e.target.value)}>
+          <option value="all">All Projects</option>
+          <option value="published">Published</option>
+          <option value="draft">Drafts</option>
+        </select>
         <GridToggle view={view} onViewChange={setView} />
       </SearchToolbar>
 
@@ -229,7 +234,7 @@ export default function ProjectsPage() {
                         </div>
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--ink)', fontSize: '12px' }}>{project.title}</div>
-                          <div style={{ fontSize: '10px', color: 'var(--ink-light)', marginTop: '3px', maxWidth: '280px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.subtitle}</div>
+
                         </div>
                       </div>
                     </td>

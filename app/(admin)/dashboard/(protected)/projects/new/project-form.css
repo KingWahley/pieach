@@ -232,3 +232,44 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* Category tags multi-select list */
+.category-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.category-tag-pill {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--stone-dark);
+  background: var(--cream);
+  color: var(--ink-mid);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  font-family: Verdana, sans-serif;
+}
+
+.category-tag-pill:hover {
+  border-color: var(--gold);
+  background: var(--gold-light);
+  color: var(--burgundy);
+}
+
+.category-tag-pill.selected {
+  background: var(--burgundy);
+  border-color: var(--burgundy);
+  color: var(--white);
+  box-shadow: 0 2px 6px rgba(50, 23, 27, 0.15);
+}
+
+.category-tag-pill.selected:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--burgundy);
+}

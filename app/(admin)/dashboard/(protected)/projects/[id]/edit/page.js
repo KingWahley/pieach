@@ -40,7 +40,7 @@ export default function EditProjectPage() {
   const handleSubmit = async (projectData, actionType) => {
     const updatedProject = {
       ...projectData,
-      status: actionType === 'draft' ? 'Draft' : projectData.status,
+      status: actionType === 'draft' ? 'Draft' : (projectData.status === 'Draft' || !projectData.status ? 'Ongoing' : projectData.status),
       // Calculate total gallery count from existing + new images minus removed
       galleryCount: (projectData.galleryFiles.existingImages.length || 0) + 
                     (projectData.galleryFiles.newImages.length || 0) - 

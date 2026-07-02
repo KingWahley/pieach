@@ -5,6 +5,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Icons } from '@/components/shared/Icons';
 import gsap from 'gsap';
 import { supabase } from '@/lib/supabase/client';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import Toast from '@/components/shared/Toast';
+import { useRouter } from 'next/navigation';
 
 const POPULAR_SOCIALS = [
   { value: 'instagram', label: 'Instagram' },
@@ -85,6 +88,7 @@ const getSocialIcon = (platform) => {
 };
 
 export default function EditContactDetailsPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     address: '12 Admiralty Road, Lekki Phase 1, Lagos, Nigeria',
     primaryPhone: '+234 800 000 0000',
@@ -101,6 +105,9 @@ export default function EditContactDetailsPage() {
 
   const [showPreviewPanel, setShowPreviewPanel] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
   const panelRef = useRef(null);
   const overlayRef = useRef(null);
 
@@ -174,7 +181,12 @@ export default function EditContactDetailsPage() {
     setShowPreviewPanel(true);
   };
 
-  const handleProceed = async () => {
+  const handleProceed = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSave = async () => {
+    setIsSaving(true);
     try {
       const { error } = await supabase
         .from('site_content')
@@ -184,13 +196,19 @@ export default function EditContactDetailsPage() {
         });
 
       if (error) {
-        alert('Failed to update contact details: ' + error.message);
+        setToast({ message: 'Failed to update contact details: ' + error.message, type: 'error' });
       } else {
         setShowPreviewPanel(false);
-        alert('Contact details updated and published successfully!');
+        setToast({ message: 'Contact details updated and published successfully!', type: 'success' });
+        setTimeout(() => {
+          router.push('/dashboard/messages');
+        }, 1500);
       }
     } catch (err) {
-      alert('An error occurred while saving: ' + err.message);
+      setToast({ message: 'An error occurred while saving: ' + err.message, type: 'error' });
+    } finally {
+      setIsSaving(false);
+      setShowConfirmModal(false);
     }
   };
 
@@ -493,6 +511,24 @@ export default function EditContactDetailsPage() {
           </div>
         </div>
       </div>
+      
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmSave}
+        title="Publish Contact Details"
+        message="Are you sure you want to save and publish these contact details? The changes will be visible on the public website immediately."
+        confirmText="Publish"
+        cancelText="Cancel"
+        type="info"
+        isLoading={isSaving}
+      />
+
+      <Toast 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={() => setToast({ ...toast, message: '' })} 
+      />
     </DashboardLayout>
   );
 }

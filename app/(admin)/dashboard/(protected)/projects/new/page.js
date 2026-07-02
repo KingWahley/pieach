@@ -30,7 +30,7 @@ export default function NewProjectPage() {
       id: Date.now().toString(),
       date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
       ...projectData,
-      status: actionType === 'draft' ? 'Draft' : projectData.status,
+      status: actionType === 'draft' ? 'Draft' : (projectData.status === 'Draft' || !projectData.status ? 'Ongoing' : projectData.status),
       galleryCount: projectData.galleryFiles.newImages.length
     };
     

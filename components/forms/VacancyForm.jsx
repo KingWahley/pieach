@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/shared/Icons';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
-export default function VacancyForm({ initialData, onSave, onCancel, isNew = false }) {
+export default function VacancyForm({ initialData, onSave, onCancel, isNew = false, saveDraftRef }) {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   
@@ -61,6 +61,22 @@ export default function VacancyForm({ initialData, onSave, onCancel, isNew = fal
     };
     onSave(finalData, publish);
   };
+
+  useEffect(() => {
+    if (saveDraftRef) {
+      saveDraftRef.current = () => {
+        const finalData = {
+          ...formData,
+          status: 'draft',
+          datePosted: new Date().toISOString().split('T')[0]
+        };
+        onSave(finalData, false);
+      };
+    }
+    return () => {
+      if (saveDraftRef) saveDraftRef.current = null;
+    };
+  }, [saveDraftRef, formData, onSave]);
 
   const inputStyle = {
     width: '100%',

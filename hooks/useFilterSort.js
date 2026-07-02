@@ -31,6 +31,17 @@ export function useFilterSort(data = [], initialFilters = {}, initialSort = { ke
                    (filterStatus === 'applied' && itemStatus === 'new') ||
                    (filterStatus === 'applied' && itemStatus === 'applied');
           }
+          if (key === 'visibility') {
+            const isDraft = String(item.status || '').toLowerCase() === 'draft';
+            if (value === 'draft') return isDraft;
+            if (value === 'published') return !isDraft;
+            return true;
+          }
+          if (key === 'category') {
+            const itemCats = item.category ? item.category.split(',').map(s => s.trim().toLowerCase()) : [];
+            const filterCat = String(value).toLowerCase();
+            return itemCats.includes(filterCat);
+          }
           return item[key] === value;
         });
       }

@@ -16,16 +16,7 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
           style={errors.title ? { borderColor: 'var(--red)' } : {}}
           />
       </div>
-      <div className="form-field full">
-        <label htmlFor="subtitle">Subtitle</label>
-        <input 
-          id="subtitle"
-          name="subtitle"
-          placeholder="Enter a brief subtitle or tagline" 
-          value={formData.subtitle} 
-          onChange={handleChange}
-        />
-      </div>
+
       <div className="form-field">
         <label htmlFor="status">Project Status</label>
         <select id="status" name="status" value={formData.status} onChange={handleChange}>
@@ -46,25 +37,47 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
         <label htmlFor="country">Country</label>
         <input id="country" name="country" placeholder="Country" value={formData.country} onChange={handleChange} />
       </div>
-      <div className="form-field">
-        <label htmlFor="category">Project Category {errors.category && <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>*Required</span>}</label>
-        <select 
-          id="category" 
-          name="category" 
-          value={formData.category} 
-          onChange={handleChange}
-          style={errors.category ? { borderColor: 'var(--red)' } : {}}
-        >
-          <option value="" disabled>Select a category</option>
+      <div className="form-field full" style={errors.category ? { border: '1px solid var(--red)', padding: '12px', borderRadius: '6px', background: 'rgba(220,38,38,0.03)' } : {}}>
+        <label>Project Categories {errors.category && <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>*Required</span>}</label>
+        <div className="category-tags-list">
           {(() => {
             const list = categories.length > 0 
-              ? categories.map(cat => ({ value: cat.name, label: cat.name })) 
-              : projectCategories;
-            return list.map(cat => (
-              <option key={cat.value} value={cat.value}>{cat.label}</option>
-            ));
+              ? categories.map(cat => cat.name) 
+              : projectCategories.map(cat => cat.label);
+            
+            const selectedCats = formData.category 
+              ? formData.category.split(',').map(c => c.trim()).filter(Boolean) 
+              : [];
+
+            return list.map(catName => {
+              const isSelected = selectedCats.includes(catName);
+              return (
+                <button
+                  key={catName}
+                  type="button"
+                  className={`category-tag-pill ${isSelected ? 'selected' : ''}`}
+                  onClick={() => {
+                    let newSelected;
+                    if (isSelected) {
+                      newSelected = selectedCats.filter(c => c !== catName);
+                    } else {
+                      newSelected = [...selectedCats, catName];
+                    }
+                    handleChange({
+                      target: {
+                        name: 'category',
+                        value: newSelected.join(', ')
+                      }
+                    });
+                  }}
+                >
+                  {catName}
+                </button>
+              );
+            });
           })()}
-        </select>
+        </div>
+        <input type="hidden" name="category" value={formData.category} />
       </div>
 
       <div className="form-field">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import VacancyForm from '@/components/forms/VacancyForm';
@@ -12,9 +12,12 @@ export default function NewVacancyPage() {
   const router = useRouter();
   const { createItem } = useStore(vacanciesStore);
   const { registerForm, clearForm } = useUnsavedChanges();
+  const saveDraftRef = useRef(null);
 
   useEffect(() => {
-    registerForm(true, null);
+    registerForm(true, () => {
+      if (saveDraftRef.current) saveDraftRef.current();
+    });
     return () => clearForm();
   }, [registerForm, clearForm]);
 
@@ -35,6 +38,7 @@ export default function NewVacancyPage() {
         isNew={true}
         onSave={handleSave}
         onCancel={handleCancel}
+        saveDraftRef={saveDraftRef}
       />
     </DashboardLayout>
   );

@@ -87,4 +87,10 @@ export const SYSTEM_NAV = [
     href: '/dashboard/settings',
     icon: 'settings',
   },
+  {
+    label: 'Logout',
+    href: '#',
+    icon: 'logout',
+    isLogout: true,
+  },
 ];

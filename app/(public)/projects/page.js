@@ -18,6 +18,11 @@ export default async function ProjectsPage() {
     .select('*')
     .neq('status', 'Draft');
 
+  // Fetch created categories
+  const { data: categories } = await supabase
+    .from('project_categories')
+    .select('*');
+
   const formattedProjects = (projects || []).map(p => ({
     id: p.id,
     title: p.title,
@@ -33,5 +38,5 @@ export default async function ProjectsPage() {
     status: p.status
   }));
 
-  return <ProjectsPageClient initialProjects={formattedProjects} />;
+  return <ProjectsPageClient initialProjects={formattedProjects} categories={categories || []} />;
 }

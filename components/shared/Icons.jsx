@@ -207,4 +207,9 @@ export const Icons = {
       <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H14a2 2 0 00-2 2v6h6a2 2 0 002-2v-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
+  logout: (props) => (
+    <svg viewBox="0 0 20 20" fill="none" {...props}>
+      <path d="M12 3H5a2 2 0 00-2 2v10a2 2 0 002 2h7M17 10l-4-4m4 4l-4 4m4-4H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
 };

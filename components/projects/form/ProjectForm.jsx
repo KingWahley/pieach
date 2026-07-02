@@ -231,7 +231,7 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
     state:         initialState,
     country:       initialCountry,
     category:      initialData?.category      || '',
-    subtitle:      initialData?.subtitle      || '',
+
     description:   initialData?.description   || '',
     siteArea:      initialData?.specs?.siteArea      || '',
     builtArea:     initialData?.specs?.builtArea     || '',
@@ -347,18 +347,21 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
 
   // Entry point for both buttons — validates first, then checks images
   const handleAction = (actionType) => {
-    if (!validate()) return;
-
-    if (!hasImages()) {
-      // Ask the user whether to continue without images
-      setPendingAction(actionType);
-      setIsNoImageConfirmOpen(true);
-      return;
-    }
-
     if (actionType === 'publish') {
+      if (!validate()) return;
+
+      if (!hasImages()) {
+        // Ask the user whether to continue without images
+        setPendingAction(actionType);
+        setIsNoImageConfirmOpen(true);
+        return;
+      }
+
       setIsPublishConfirmOpen(true);
     } else {
+      // Bypass validation and image checks for drafts
+      setErrors({});
+      setValidationBanner('');
       executeAction('draft');
     }
   };
