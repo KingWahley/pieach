@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -8,11 +8,15 @@ import ProjectForm from '@/components/projects/form/ProjectForm';
 import { useStore } from '@/hooks/useStore';
 import { projectsStore } from '@/lib/store';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
+import SuccessModal from '@/components/modals/SuccessModal';
 
 export default function NewProjectPage() {
   const router = useRouter();
   const { createItem } = useStore(projectsStore);
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Ref to the form's "save as draft" trigger so the sidebar modal can invoke it
   const saveDraftRef = useRef(null);
@@ -22,8 +26,9 @@ export default function NewProjectPage() {
     registerForm(true, () => {
       if (saveDraftRef.current) saveDraftRef.current();
     });
+    router.prefetch('/dashboard/projects');
     return () => clearForm();
-  }, [registerForm, clearForm]);
+  }, [registerForm, clearForm, router]);
 
   const handleSubmit = async (projectData, actionType) => {
     const newProject = {
@@ -36,9 +41,16 @@ export default function NewProjectPage() {
     
     createItem(newProject);
     clearForm();
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    router.push('/dashboard/projects');
+    setShowSuccess(true);
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      router.push('/dashboard/projects');
+    }
   };
 
   return (
@@ -48,14 +60,39 @@ export default function NewProjectPage() {
           <h1 style={{ fontSize: '22px', color: 'var(--burgundy)', marginBottom: '4px', fontFamily: 'Verdana, sans-serif' }}>Add New Project</h1>
           <p style={{ fontSize: '11px', color: 'var(--ink-light)' }}>Create a new project entry for your architectural portfolio.</p>
         </div>
-        <Link href="/dashboard/projects" style={{ textDecoration: 'none' }}>
-          <button className="secondary-btn" style={{ background: 'var(--white)', color: 'var(--burgundy)', border: '1px solid var(--stone-dark)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', fontFamily: 'Verdana, sans-serif', cursor: 'pointer' }}>
-            Cancel
-          </button>
-        </Link>
+        <button 
+          onClick={handleCancel}
+          className="secondary-btn" 
+          style={{ background: 'var(--white)', color: 'var(--burgundy)', border: '1px solid var(--stone-dark)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', fontFamily: 'Verdana, sans-serif', cursor: 'pointer' }}
+        >
+          Cancel
+        </button>
       </div>
 
       <ProjectForm onSubmit={handleSubmit} saveDraftRef={saveDraftRef} />
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          router.push('/dashboard/projects');
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          router.push('/dashboard/projects');
+        } : null}
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        message="Your project has been successfully uploaded and published."
+        uploadAnotherText="Upload Another Project"
+        viewListText="View Project List"
+        onUploadAnother={() => window.location.reload()}
+        onViewList={() => router.push('/dashboard/projects')}
+      />
     </DashboardLayout>
   );
 }

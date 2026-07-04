@@ -7,12 +7,14 @@ import TeamMemberForm from '@/components/team/form/TeamMemberForm';
 import { useStore } from '@/hooks/useStore';
 import { teamStore } from '@/lib/store';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
 
 export default function EditTeamMemberPage() {
   const router = useRouter();
   const { id } = useParams();
   const { data } = useStore(teamStore);
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,12 +33,17 @@ export default function EditTeamMemberPage() {
   useEffect(() => {
     if (!member) return;
     registerForm(true, null);
+    router.prefetch('/dashboard/team');
     return () => clearForm();
-  }, [member, registerForm, clearForm]);
+  }, [member, registerForm, clearForm, router]);
 
   const handleCancel = () => {
-    clearForm();
-    router.push('/dashboard/team');
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      router.push('/dashboard/team');
+    }
   };
 
   if (loading) {
@@ -80,6 +87,20 @@ export default function EditTeamMemberPage() {
       </div>
 
       <TeamMemberForm mode="edit" initialData={member} />
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          router.push('/dashboard/team');
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          router.push('/dashboard/team');
+        } : null}
+      />
     </DashboardLayout>
   );
 }

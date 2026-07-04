@@ -16,6 +16,7 @@ import GridToggle from '@/components/shared/GridToggle';
 import Pagination from '@/components/shared/Pagination';
 
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
 import Toast from '@/components/shared/Toast';
 
 export default function VacanciesPage() {
@@ -23,13 +24,15 @@ export default function VacanciesPage() {
   const { data: applications } = useStore(jobApplicationsStore);
   const [view, setView] = useViewMode();
   const { filteredAndSortedData, searchQuery, setSearchQuery, filters, updateFilter } = useFilterSort(vacancies, { status: 'all' }, { key: 'datePosted', order: 'desc' });
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const saveDraftRef = useRef(null);
   
   const [selectedVacancy, setSelectedVacancy] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [reviewVacancy, setReviewVacancy] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
   const pageSize = 7;
 
   // Confirmation Modal State
@@ -51,6 +54,7 @@ export default function VacanciesPage() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
   }, [searchQuery, filters]);
 
   const handleEdit = (vacancy) => {
@@ -60,9 +64,13 @@ export default function VacanciesPage() {
   };
 
   const handleCloseForm = () => {
-    clearForm();
-    setSelectedVacancy(null);
-    setIsEditing(false);
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      setSelectedVacancy(null);
+      setIsEditing(false);
+    }
   };
 
   const handleSave = (finalData) => {
@@ -95,15 +103,22 @@ export default function VacanciesPage() {
         setReviewVacancy(null);
       }
       setToast({ message: `Vacancy "${vacancyToDelete.title}" deleted.`, type: 'success' });
-      setIsDeleteModalOpen(false);
       setVacancyToDelete(null);
+    } else if (selectedIds.length > 0) {
+      selectedIds.forEach(id => deleteItem(id));
+      if (reviewVacancy && selectedIds.includes(reviewVacancy.id)) {
+        setReviewVacancy(null);
+      }
+      setToast({ message: `${selectedIds.length} vacancies deleted.`, type: 'success' });
+      setSelectedIds([]);
     }
+    setIsDeleteModalOpen(false);
   };
 
   // Stats calculation
-  const activeCount = vacancies.filter(v => ['published', 'Open', 'open'].includes(v.status?.toLowerCase())).length;
-  const draftCount = vacancies.filter(v => ['draft', 'Draft'].includes(v.status)).length;
-  const closedCount = vacancies.filter(v => ['closed', 'Closed'].includes(v.status)).length;
+  const activeCount = vacancies.filter(v => ['published', 'open'].includes(v.status?.toLowerCase())).length;
+  const draftCount = vacancies.filter(v => ['draft'].includes(v.status?.toLowerCase())).length;
+  const closedCount = vacancies.filter(v => ['closed'].includes(v.status?.toLowerCase())).length;
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAndSortedData.length / pageSize);
@@ -111,7 +126,31 @@ export default function VacanciesPage() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    setSelectedIds([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleSelect = (id, e) => {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedData.map(v => v.id));
+    }
+  };
+
+  const handleBulkStatusUpdate = (status) => {
+    selectedIds.forEach(id => {
+      updateItem(id, { status });
+    });
+    setToast({ message: `Updated ${selectedIds.length} vacancy/vacancies to "${status}".`, type: 'success' });
+    setSelectedIds([]);
   };
 
   if (isEditing) {
@@ -192,6 +231,32 @@ export default function VacanciesPage() {
           </select>
           <Icons.chevronDown style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '10px', height: '10px', color: 'var(--gold-dark)', pointerEvents: 'none' }} />
         </div>
+
+        {selectedIds.length > 0 && (
+          <div style={{ position: 'relative', minWidth: '180px' }}>
+            <select 
+              className="filter-select"
+              value=""
+              onChange={(e) => {
+                const action = e.target.value;
+                if (action === 'delete') {
+                  setIsDeleteModalOpen(true);
+                } else if (action) {
+                  handleBulkStatusUpdate(action);
+                }
+                e.target.value = "";
+              }}
+              style={{ width: '100%', padding: '12px 35px 12px 15px', border: '1px solid var(--gold-dark)', borderRadius: '6px', appearance: 'none', fontSize: '13px', background: 'var(--cream)', color: 'var(--burgundy)', fontWeight: 'bold' }}
+            >
+              <option value="" disabled>Bulk Actions ({selectedIds.length})</option>
+              <option value="published">Mark Open/Publish</option>
+              <option value="closed">Mark Closed</option>
+              <option value="draft">Mark as Draft</option>
+              <option value="delete">Delete Selected</option>
+            </select>
+            <Icons.chevronDown style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '10px', height: '10px', color: 'var(--gold-dark)', pointerEvents: 'none' }} />
+          </div>
+        )}
         <GridToggle view={view} onViewChange={setView} />
       </div>
 
@@ -252,13 +317,33 @@ export default function VacanciesPage() {
           >
             <div className="card" style={{ background: 'white', border: '1px solid var(--stone-dark)', borderRadius: '8px', overflow: 'hidden' }}>
               <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--stone)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--cream)' }}>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.08em', color: 'var(--ink)' }}>VACANCY LIST</span>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.08em', color: 'var(--ink)' }}>
+                  {selectedIds.length > 0 ? `${selectedIds.length} SELECTED` : 'VACANCY LIST'}
+                </span>
+                {selectedIds.length > 0 ? (
+                  <button 
+                    onClick={() => setSelectedIds([])}
+                    style={{ background: 'none', border: 'none', color: 'var(--gold-dark)', fontSize: '11px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}
+                  >
+                    Clear Selection
+                  </button>
+                ) : (
+                  <span style={{ fontSize: '10px', color: 'var(--ink-light)' }}>Select items to enable bulk actions</span>
+                )}
               </div>
 
               <div style={{ overflowX: 'auto' }}>
                 <table className="project-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--stone-dark)' }}>
+                      <th style={{ width: '40px', padding: '16px 20px', background: 'var(--cream)', borderBottom: '1px solid var(--stone-dark)' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                          onChange={toggleSelectAll}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </th>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '10px', fontWeight: 'bold', color: 'var(--burgundy)', textTransform: 'uppercase', background: 'var(--cream)', letterSpacing: '0.05em' }}>JOB TITLE</th>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '10px', fontWeight: 'bold', color: 'var(--burgundy)', textTransform: 'uppercase', background: 'var(--cream)', letterSpacing: '0.05em' }}>EMPLOYMENT TYPE</th>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '10px', fontWeight: 'bold', color: 'var(--burgundy)', textTransform: 'uppercase', background: 'var(--cream)', letterSpacing: '0.05em' }}>APPLICATIONS</th>
@@ -274,8 +359,25 @@ export default function VacanciesPage() {
                         <tr 
                           key={vacancy.id} 
                           onClick={() => handleReview(vacancy)}
-                          style={{ borderBottom: '1px solid var(--stone)', cursor: 'pointer', background: reviewVacancy?.id === vacancy.id ? '#FCFAF6' : 'transparent', transition: 'background 0.2s' }}
+                          style={{ 
+                            borderBottom: '1px solid var(--stone)', 
+                            cursor: 'pointer', 
+                            background: selectedIds.includes(vacancy.id)
+                              ? '#FFFBEB'
+                              : reviewVacancy?.id === vacancy.id 
+                                ? '#FCFAF6' 
+                                : 'transparent', 
+                            transition: 'background 0.2s' 
+                          }}
                         >
+                          <td style={{ padding: '18px 20px', width: '40px' }} onClick={(e) => toggleSelect(vacancy.id, e)}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedIds.includes(vacancy.id)}
+                              readOnly
+                              style={{ cursor: 'pointer' }}
+                            />
+                          </td>
                           <td style={{ padding: '18px 20px' }}>
                             <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--burgundy)' }}>{vacancy.title}</div>
                             <div style={{ fontSize: '11px', color: 'var(--ink-light)', marginTop: '2px', maxWidth: '400px', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -414,11 +516,17 @@ export default function VacanciesPage() {
 
       <ConfirmationModal 
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setVacancyToDelete(null);
+        }}
         onConfirm={confirmDelete}
-        title="Delete Vacancy"
-        message={`Are you sure you want to delete the vacancy "${vacancyToDelete?.title}"? This action is permanent and will remove all associated application links.`}
-        confirmText="Delete Vacancy"
+        title={vacancyToDelete ? "Delete Vacancy" : "Delete Selected Vacancies"}
+        message={vacancyToDelete 
+          ? `Are you sure you want to delete the vacancy "${vacancyToDelete?.title}"? This action is permanent and will remove all associated application links.`
+          : `Are you sure you want to delete the ${selectedIds.length} selected vacancies? This action is permanent and will remove all associated application links.`
+        }
+        confirmText="Delete"
         type="danger"
       />
 
@@ -433,6 +541,24 @@ export default function VacanciesPage() {
         message={`Are you sure you want to publish the vacancy "${reviewVacancy?.title}"? This will make the listing visible on the public careers page.`}
         confirmText="Publish Now"
         type="primary"
+      />
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          setSelectedVacancy(null);
+          setIsEditing(false);
+          setShowUnsavedConfirm(false);
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          setSelectedVacancy(null);
+          setIsEditing(false);
+          setShowUnsavedConfirm(false);
+        } : null}
       />
 
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, message: '' })} />

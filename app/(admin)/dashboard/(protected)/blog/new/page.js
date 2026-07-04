@@ -1,22 +1,27 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import BlogForm from '@/components/forms/BlogForm';
 import { useStore } from '@/hooks/useStore';
 import { blogStore } from '@/lib/store';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
+import SuccessModal from '@/components/modals/SuccessModal';
 
 export default function NewBlogPostPage() {
   const router = useRouter();
   const { createItem } = useStore(blogStore);
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     registerForm(true, null); // no draft save for blog
+    router.prefetch('/dashboard/blog');
     return () => clearForm();
-  }, [registerForm, clearForm]);
+  }, [registerForm, clearForm, router]);
 
   const handleSave = (finalData) => {
     createItem({
@@ -24,12 +29,16 @@ export default function NewBlogPostPage() {
       reads: 0 // Initialize reads for new post
     });
     clearForm();
-    router.push('/dashboard/blog');
+    setShowSuccess(true);
   };
 
   const handleCancel = () => {
-    clearForm();
-    router.push('/dashboard/blog');
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      router.push('/dashboard/blog');
+    }
   };
 
   return (
@@ -49,6 +58,29 @@ export default function NewBlogPostPage() {
           onCancel={handleCancel}
         />
       </div>
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          router.push('/dashboard/blog');
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          router.push('/dashboard/blog');
+        } : null}
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        message="Your blog post has been successfully uploaded and published."
+        uploadAnotherText="Write Another Post"
+        viewListText="View Blog List"
+        onUploadAnother={() => window.location.reload()}
+        onViewList={() => router.push('/dashboard/blog')}
+      />
     </DashboardLayout>
   );
 }

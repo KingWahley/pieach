@@ -41,6 +41,9 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
   const handleCoverChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setCoverFile(e.target.files[0]);
+      if (errors.coverFile) {
+        setErrors((prev) => ({ ...prev, coverFile: "" }));
+      }
     }
   };
 
@@ -63,7 +66,11 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
     }
     
     if (!cvFile) {
-      newErrors.cvFile = "Please upload your resume (PDF).";
+      newErrors.cvFile = "Please upload your resume/CV (PDF).";
+    }
+
+    if (!coverFile) {
+      newErrors.coverFile = "Please upload your cover letter (PDF).";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -281,11 +288,13 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
       {/* File Upload zone 2: Letter of Intent */}
       <div className="space-y-2">
         <label className="block font-sans text-[11px] font-medium tracking-[0.2em] text-[#B5A898] uppercase">
-          LETTER OF INTENT
+          LETTER OF INTENT (PDF)
         </label>
         <div 
           onClick={() => coverInputRef.current.click()}
-          className="border border-dashed border-white/20 hover:border-[#c5a880]/30 rounded-none transition duration-300 py-12 px-4 text-center cursor-pointer relative bg-white/[0.01]"
+          className={`border border-dashed rounded-none transition duration-300 py-12 px-4 text-center cursor-pointer relative bg-white/[0.01] ${
+            errors.coverFile ? 'border-red-500/80 hover:border-red-500/60' : 'border-white/20 hover:border-[#c5a880]/30'
+          }`}
         >
           <input 
             type="file"
@@ -317,6 +326,14 @@ export default function ApplicationForm({ vacancyId, roleTitle }) {
             )}
           </div>
         </div>
+        {errors.coverFile && (
+          <p className="text-red-500 text-xs font-sans mt-1.5 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            {errors.coverFile}
+          </p>
+        )}
       </div>
 
       {/* Submit Error */}

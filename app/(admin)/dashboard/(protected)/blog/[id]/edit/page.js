@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import BlogForm from '@/components/forms/BlogForm';
@@ -8,41 +8,50 @@ import { useStore } from '@/hooks/useStore';
 import { blogStore } from '@/lib/store';
 import EmptyState from '@/components/shared/EmptyState';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
+import SuccessModal from '@/components/modals/SuccessModal';
 
 export default function EditBlogPostPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const { data, updateItem } = useStore(blogStore);
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   
   const post = data.find(p => p.id === id);
 
   useEffect(() => {
     if (!post) return;
     registerForm(true, null); // no draft save for blog
+    router.prefetch('/dashboard/blog');
     return () => clearForm();
-  }, [post, registerForm, clearForm]);
+  }, [post, registerForm, clearForm, router]);
 
   const handleSave = (finalData) => {
     updateItem(id, finalData);
     clearForm();
-    router.push('/dashboard/blog');
+    setShowSuccess(true);
   };
 
   const handleCancel = () => {
-    clearForm();
-    router.push('/dashboard/blog');
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      router.push('/dashboard/blog');
+    }
   };
 
   if (!post) {
     return (
       <DashboardLayout title="Edit Post" subtitle="Post not found">
-        <div className="max-w-5xl mx-auto px-4 py-12">
-          <EmptyState 
-            title="Post not found" 
-            message="The article you are trying to edit does not exist or has been removed."
-          />
-        </div>
+        <EmptyState 
+          title="Post Not Found"
+          description="The blog post you are trying to edit does not exist or has been deleted."
+          actionText="Back to Blog"
+          actionLink="/dashboard/blog"
+        />
       </DashboardLayout>
     );
   }
@@ -65,6 +74,29 @@ export default function EditBlogPostPage({ params }) {
           isNew={false}
         />
       </div>
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          router.push('/dashboard/blog');
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          router.push('/dashboard/blog');
+        } : null}
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        message="Your blog post has been successfully updated and published."
+        uploadAnotherText="Write New Post"
+        viewListText="View Blog List"
+        onUploadAnother={() => router.push('/dashboard/blog/new')}
+        onViewList={() => router.push('/dashboard/blog')}
+      />
     </DashboardLayout>
   );
 }

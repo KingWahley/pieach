@@ -1,7 +1,7 @@
 // components/modals/UnsavedChangesModal.jsx
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function UnsavedChangesModal({
   isOpen,
@@ -9,7 +9,22 @@ export default function UnsavedChangesModal({
   onDiscard,
   onStay,
 }) {
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleDiscard = () => {
+    setIsRedirecting(true);
+    onDiscard();
+  };
+
+  const handleSaveAsDraft = () => {
+    setIsSaving(true);
+    onSaveAsDraft();
+  };
+
+  const isBusy = isRedirecting || isSaving;
 
   return (
     <div className="fixed inset-0 z-[999999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
@@ -19,8 +34,10 @@ export default function UnsavedChangesModal({
           from { transform: scale(0.92); opacity: 0; }
           to   { transform: scale(1);    opacity: 1; }
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
         .animate-zoom-in { animation: zoomIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+        .animate-spin { animation: spin 1s linear infinite; }
 
         .uc-svg { width:56px; height:56px; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; fill:none; stroke:#F59E0B; }
         .uc-circle { stroke-dasharray:166; stroke-dashoffset:166; animation:ucCircle 0.5s cubic-bezier(0.65,0,0.45,1) forwards; }
@@ -53,8 +70,9 @@ export default function UnsavedChangesModal({
           {/* Stay */}
           <button
             type="button"
+            disabled={isBusy}
             onClick={onStay}
-            className="px-6 py-3 border border-white/10 hover:border-white/20 text-white text-[10px] font-sans font-bold uppercase tracking-widest transition duration-200 rounded-sm cursor-pointer"
+            className="px-6 py-3 border border-white/10 hover:border-white/20 text-white text-[10px] font-sans font-bold uppercase tracking-widest transition duration-200 rounded-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Stay &amp; Keep Editing
           </button>
@@ -62,20 +80,34 @@ export default function UnsavedChangesModal({
           {/* Discard */}
           <button
             type="button"
-            onClick={onDiscard}
-            className="px-6 py-3 border border-red-600/60 hover:border-red-600 text-red-400 hover:text-red-300 text-[10px] font-sans font-bold uppercase tracking-widest transition duration-200 rounded-sm cursor-pointer"
+            disabled={isBusy}
+            onClick={handleDiscard}
+            className="px-6 py-3 border border-red-600/60 hover:border-red-600 text-red-400 hover:text-red-300 text-[10px] font-sans font-bold uppercase tracking-widest transition duration-200 rounded-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
           >
-            Discard &amp; Leave
+            {isRedirecting && (
+              <svg className="animate-spin h-3 w-3 text-red-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            )}
+            {isRedirecting ? 'LEAVING...' : 'Discard & Leave'}
           </button>
 
           {/* Save as Draft — only shown when the form supports it */}
           {onSaveAsDraft && (
             <button
               type="button"
-              onClick={onSaveAsDraft}
-              className="px-8 py-3 border border-brand-gold bg-brand-gold hover:bg-brand-gold-hover text-brand-navy text-[10px] font-sans font-bold uppercase tracking-widest transition duration-200 rounded-sm cursor-pointer"
+              disabled={isBusy}
+              onClick={handleSaveAsDraft}
+              className="px-8 py-3 border border-brand-gold bg-brand-gold hover:bg-brand-gold-hover text-brand-navy text-[10px] font-sans font-bold uppercase tracking-widest transition duration-200 rounded-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
             >
-              Save as Draft
+              {isSaving && (
+                <svg className="animate-spin h-3 w-3 text-brand-navy" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {isSaving ? 'SAVING...' : 'Save as Draft'}
             </button>
           )}
         </div>

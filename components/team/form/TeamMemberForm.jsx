@@ -13,6 +13,8 @@ import TeamFormActions from './TeamFormActions';
 import TeamMemberPreview from '../TeamMemberPreview';
 import { Icons } from '@/components/shared/Icons';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import SuccessModal from '@/components/modals/SuccessModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Step icons (SVG, no emoji)
@@ -49,10 +51,10 @@ const StepIcons = {
 // Steps — create vs edit get slightly different labels
 // ─────────────────────────────────────────────────────────────────────────────
 const getSteps = (mode) => [
-  { id: 'validate', label: 'Validating profile data',           durationMs: 550 },
-  { id: 'photo',    label: 'Processing photo assets',           durationMs: 750 },
-  { id: 'saving',   label: mode === 'create' ? 'Creating profile record' : 'Updating profile record', durationMs: 850 },
-  { id: 'live',     label: 'Publishing to live site',           durationMs: 650 },
+  { id: 'validate', label: 'Validating profile data',           durationMs: 150 },
+  { id: 'photo',    label: 'Processing photo assets',           durationMs: 200 },
+  { id: 'saving',   label: mode === 'create' ? 'Creating profile record' : 'Updating profile record', durationMs: 250 },
+  { id: 'live',     label: 'Publishing to live site',           durationMs: 150 },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,7 +72,7 @@ function TeamPublishingOverlay({ memberName, mode, onDone }) {
     const tick = () => {
       if (idx >= STEPS.length) {
         setSuccess(true);
-        timerRef.current = setTimeout(onDone, 2200);
+        timerRef.current = setTimeout(onDone, 500);
         return;
       }
       setCurrentStep(idx);
@@ -250,12 +252,15 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
   const [showOverlay,          setShowOverlay]          = useState(false);
   const [isPreviewOpen,        setIsPreviewOpen]        = useState(false);
   const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
+  const { clearForm } = useUnsavedChanges();
+  const [showSuccess, setShowSuccess] = useState(false);
   const pendingDraftRef = useRef(false);
   const formCardRef    = useRef(null);
 
   // If the user publishes from the preview tab, redirect this edit tab away
   // to prevent a second accidental submit.
   useEffect(() => {
+    router.prefetch('/dashboard/team');
     const onStorage = (e) => {
       if (e.key === 'pieach-team-published') {
         localStorage.removeItem('pieach-team-published');
@@ -364,11 +369,17 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
 
     if (mode === 'create') {
       createItem({ ...finalData, id: `t${Date.now()}` });
+      clearForm();
+      setShowOverlay(false);
+      setIsSaving(false);
+      setShowSuccess(true);
     } else {
       updateItem(formData.id, finalData);
+      clearForm();
+      setShowOverlay(false);
+      setIsSaving(false);
+      setShowSuccess(true);
     }
-
-    router.push('/dashboard/team');
   };
 
   // Entry point for both Save Draft and Publish — validates first
@@ -481,6 +492,21 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
           cancelText="Review Again"
           type="info"
           isLoading={isSaving}
+        />
+
+        <SuccessModal
+          isOpen={showSuccess}
+          message={mode === 'create' ? "Your team member profile has been successfully uploaded and published." : "Your team member profile has been successfully updated."}
+          uploadAnotherText={mode === 'create' ? "Add Another Member" : "Add New Member"}
+          viewListText="View Team List"
+          onUploadAnother={() => {
+            if (mode === 'create') {
+              window.location.reload();
+            } else {
+              router.push('/dashboard/team/new');
+            }
+          }}
+          onViewList={() => router.push('/dashboard/team')}
         />
       </div>
     </>

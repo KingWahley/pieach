@@ -51,6 +51,11 @@ export default function LoginPage() {
       return;
     }
 
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setErrorMsg('Database configuration is missing. Please ensure your environment variables are configured.');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMsg('');
 
@@ -61,7 +66,11 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setErrorMsg(error.message);
+        if (error.message === 'Failed to fetch' || error.message?.includes('fetch')) {
+          setErrorMsg('Unable to connect to the authentication server. Please check your internet connection or verify that the database service is running.');
+        } else {
+          setErrorMsg(error.message);
+        }
         setIsLoading(false);
         return;
       }
@@ -85,7 +94,11 @@ export default function LoginPage() {
         setIsLoading(false);
       }
     } catch (err) {
-      setErrorMsg('An unexpected error occurred.');
+      if (err.message === 'Failed to fetch' || err.message?.includes('fetch')) {
+        setErrorMsg('Unable to connect to the authentication server. Please check your internet connection or verify that the database service is running.');
+      } else {
+        setErrorMsg(err.message || 'An unexpected error occurred.');
+      }
       setIsLoading(false);
     }
   };

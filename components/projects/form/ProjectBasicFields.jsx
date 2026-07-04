@@ -48,9 +48,19 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
             const selectedCats = formData.category 
               ? formData.category.split(',').map(c => c.trim()).filter(Boolean) 
               : [];
-
+ 
             return list.map(catName => {
-              const isSelected = selectedCats.includes(catName);
+              const catLower = catName.toLowerCase().trim();
+              const isSelected = selectedCats.some(c => {
+                const selLower = c.toLowerCase().trim();
+                return selLower === catLower ||
+                       catLower.includes(selLower) ||
+                       selLower.includes(catLower) ||
+                       (catLower.includes('residential') && selLower.includes('residential')) ||
+                       (catLower.includes('commercial') && selLower.includes('commercial')) ||
+                       (catLower.includes('master') && selLower.includes('master'));
+              });
+
               return (
                 <button
                   key={catName}
@@ -59,7 +69,16 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
                   onClick={() => {
                     let newSelected;
                     if (isSelected) {
-                      newSelected = selectedCats.filter(c => c !== catName);
+                      newSelected = selectedCats.filter(c => {
+                        const selLower = c.toLowerCase().trim();
+                        const matches = selLower === catLower ||
+                                        catLower.includes(selLower) ||
+                                        selLower.includes(catLower) ||
+                                        (catLower.includes('residential') && selLower.includes('residential')) ||
+                                        (catLower.includes('commercial') && selLower.includes('commercial')) ||
+                                        (catLower.includes('master') && selLower.includes('master'));
+                        return !matches;
+                      });
                     } else {
                       newSelected = [...selectedCats, catName];
                     }

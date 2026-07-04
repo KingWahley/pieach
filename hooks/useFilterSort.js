@@ -28,6 +28,8 @@ export function useFilterSort(data = [], initialFilters = {}, initialSort = { ke
             const itemStatus = String(item[key] || '').toLowerCase();
             const filterStatus = String(value).toLowerCase();
             return itemStatus === filterStatus || 
+                   (filterStatus === 'open' && itemStatus === 'published') ||
+                   (filterStatus === 'published' && itemStatus === 'open') ||
                    (filterStatus === 'applied' && itemStatus === 'new') ||
                    (filterStatus === 'applied' && itemStatus === 'applied');
           }

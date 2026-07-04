@@ -209,7 +209,6 @@ export default function BlogForm({ initialData, onSave, onCancel, isNew = false 
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
-                <option value="scheduled">Scheduled</option>
               </select>
             </div>
             <div className="flex flex-col gap-2">

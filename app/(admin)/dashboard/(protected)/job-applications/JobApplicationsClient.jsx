@@ -22,6 +22,7 @@ export default function JobApplicationsClient() {
   const [reviewApp, setReviewApp] = useState(null);
   const activeApp = reviewApp ? applications.find(a => a.id === reviewApp.id) : null;
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [appToDelete, setAppToDelete] = useState(null);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -43,6 +44,7 @@ export default function JobApplicationsClient() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
   }, [searchQuery, filters]);
 
   const handleReview = (app) => {
@@ -269,7 +271,31 @@ export default function JobApplicationsClient() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    setSelectedIds([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleSelect = (id, e) => {
+    if (e) e.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === paginatedData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedData.map(a => a.id));
+    }
+  };
+
+  const handleBulkStatusUpdate = (status) => {
+    selectedIds.forEach(id => {
+      updateItem(id, { status });
+    });
+    setToast({ message: `Updated ${selectedIds.length} application(s) to "${status}".`, type: 'success' });
+    setSelectedIds([]);
   };
 
   return (
@@ -342,6 +368,32 @@ export default function JobApplicationsClient() {
           </select>
           <Icons.chevronDown style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '10px', height: '10px', color: 'var(--gold-dark)', pointerEvents: 'none' }} />
         </div>
+
+        {selectedIds.length > 0 && (
+          <div style={{ position: 'relative', minWidth: '180px' }}>
+            <select 
+              className="filter-select"
+              value=""
+              onChange={(e) => {
+                const action = e.target.value;
+                if (action === 'delete') {
+                  setIsDeleteModalOpen(true);
+                } else if (action) {
+                  handleBulkStatusUpdate(action);
+                }
+                e.target.value = "";
+              }}
+              style={{ width: '100%', padding: '12px 35px 12px 15px', border: '1px solid var(--gold-dark)', borderRadius: '6px', appearance: 'none', fontSize: '13px', background: 'var(--cream)', color: 'var(--burgundy)', fontWeight: 'bold' }}
+            >
+              <option value="" disabled>Bulk Actions ({selectedIds.length})</option>
+              <option value="shortlisted">Shortlist Selected</option>
+              <option value="rejected">Reject Selected</option>
+              <option value="reviewed">Mark as Reviewed</option>
+              <option value="delete">Delete Selected</option>
+            </select>
+            <Icons.chevronDown style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '10px', height: '10px', color: 'var(--gold-dark)', pointerEvents: 'none' }} />
+          </div>
+        )}
       </div>
 
       <div 
@@ -357,14 +409,33 @@ export default function JobApplicationsClient() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card" style={{ background: 'white', border: '1px solid var(--stone-dark)', borderRadius: '8px', overflow: 'hidden' }}>
             <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--stone)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--cream)' }}>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.08em', color: 'var(--ink)' }}>APPLICATION LIST</span>
-              <button style={{ background: 'none', border: 'none', color: 'var(--gold-dark)', fontSize: '11px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Bulk actions ›</button>
+              <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.08em', color: 'var(--ink)' }}>
+                {selectedIds.length > 0 ? `${selectedIds.length} SELECTED` : 'APPLICATION LIST'}
+              </span>
+              {selectedIds.length > 0 ? (
+                <button 
+                  onClick={() => setSelectedIds([])}
+                  style={{ background: 'none', border: 'none', color: 'var(--gold-dark)', fontSize: '11px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}
+                >
+                  Clear Selection
+                </button>
+              ) : (
+                <span style={{ fontSize: '10px', color: 'var(--ink-light)' }}>Select items to enable bulk actions</span>
+              )}
             </div>
 
             <div style={{ overflowX: 'auto' }}>
               <table className="project-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--stone-dark)' }}>
+                    <th style={{ width: '40px', padding: '16px 20px', background: 'var(--cream)', borderBottom: '1px solid var(--stone-dark)' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                        onChange={toggleSelectAll}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '10px', fontWeight: 'bold', color: 'var(--burgundy)', textTransform: 'uppercase', background: 'var(--cream)', letterSpacing: '0.05em' }}>APPLICANT</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '10px', fontWeight: 'bold', color: 'var(--burgundy)', textTransform: 'uppercase', background: 'var(--cream)', letterSpacing: '0.05em' }}>APPLIED ROLE</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '10px', fontWeight: 'bold', color: 'var(--burgundy)', textTransform: 'uppercase', background: 'var(--cream)', letterSpacing: '0.05em' }}>DOCUMENTS</th>
@@ -382,14 +453,24 @@ export default function JobApplicationsClient() {
                         style={{ 
                           borderBottom: '1px solid var(--stone)', 
                           cursor: 'pointer', 
-                          background: reviewApp?.id === app.id 
-                            ? '#FCFAF6' 
-                            : !['new', 'applied'].includes(String(app.status || '').toLowerCase())
-                              ? '#F2FAF4' 
-                              : 'transparent', 
+                          background: selectedIds.includes(app.id)
+                            ? '#FFFBEB'
+                            : reviewApp?.id === app.id 
+                              ? '#FCFAF6' 
+                              : !['new', 'applied'].includes(String(app.status || '').toLowerCase())
+                                ? '#F2FAF4' 
+                                : 'transparent', 
                           transition: 'background 0.2s' 
                         }}
                       >
+                        <td style={{ padding: '18px 20px', width: '40px' }} onClick={(e) => toggleSelect(app.id, e)}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedIds.includes(app.id)}
+                            readOnly
+                            style={{ cursor: 'pointer' }}
+                          />
+                        </td>
                         <td style={{ padding: '18px 20px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                             <div style={{ width: '40px', height: '40px', background: 'var(--burgundy)', color: 'var(--gold)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', flexShrink: 0 }}>
@@ -545,7 +626,7 @@ export default function JobApplicationsClient() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6">
+                      <td colSpan="7">
                         <EmptyState title="No applications found matching your criteria" />
                       </td>
                     </tr>
@@ -777,12 +858,19 @@ export default function JobApplicationsClient() {
             const name = appToDelete.applicantName || appToDelete.name || 'Applicant';
             deleteItem(appToDelete.id);
             setToast({ message: `Application from "${name}" deleted.`, type: 'success' });
+          } else if (selectedIds.length > 0) {
+            selectedIds.forEach(id => deleteItem(id));
+            setToast({ message: `${selectedIds.length} application(s) deleted successfully.`, type: 'success' });
+            setSelectedIds([]);
           }
           setIsDeleteModalOpen(false);
           setAppToDelete(null);
         }}
-        title="Delete Application"
-        message={`Are you sure you want to delete ${appToDelete?.applicantName || appToDelete?.name || 'this'}'s application? This action cannot be undone.`}
+        title={appToDelete ? "Delete Application" : "Delete Selected Applications"}
+        message={appToDelete 
+          ? `Are you sure you want to delete ${appToDelete?.applicantName || appToDelete?.name || 'this'}'s application? This action cannot be undone.` 
+          : `Are you sure you want to delete the ${selectedIds.length} selected applications? This action cannot be undone.`
+        }
         confirmText="Delete"
         cancelText="Cancel"
         type="danger"

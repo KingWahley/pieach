@@ -1,23 +1,30 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import TeamMemberForm from '@/components/team/form/TeamMemberForm';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
 
 export default function NewTeamMemberPage() {
   const router = useRouter();
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
 
   useEffect(() => {
     registerForm(true, null);
+    router.prefetch('/dashboard/team');
     return () => clearForm();
-  }, [registerForm, clearForm]);
+  }, [registerForm, clearForm, router]);
 
   const handleCancel = () => {
-    clearForm();
-    router.push('/dashboard/team');
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      router.push('/dashboard/team');
+    }
   };
 
   return (
@@ -31,6 +38,20 @@ export default function NewTeamMemberPage() {
       </div>
 
       <TeamMemberForm mode="create" />
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          router.push('/dashboard/team');
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          router.push('/dashboard/team');
+        } : null}
+      />
     </DashboardLayout>
   );
 }

@@ -8,13 +8,17 @@ import ProjectForm from '@/components/projects/form/ProjectForm';
 import { useStore } from '@/hooks/useStore';
 import { projectsStore } from '@/lib/store';
 import { useUnsavedChanges } from '@/lib/unsavedChangesContext';
+import UnsavedChangesModal from '@/components/modals/UnsavedChangesModal';
+import SuccessModal from '@/components/modals/SuccessModal';
 
 export default function EditProjectPage() {
   const { id } = useParams();
   const router = useRouter();
   const { data, getItemById, updateItem } = useStore(projectsStore);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const { registerForm, clearForm } = useUnsavedChanges();
+  const { registerForm, clearForm, isDirty, onSaveAsDraft } = useUnsavedChanges();
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const saveDraftRef = useRef(null);
 
   useEffect(() => {
@@ -34,8 +38,9 @@ export default function EditProjectPage() {
     registerForm(true, () => {
       if (saveDraftRef.current) saveDraftRef.current();
     });
+    router.prefetch('/dashboard/projects');
     return () => clearForm();
-  }, [hasLoaded, project, registerForm, clearForm]);
+  }, [hasLoaded, project, registerForm, clearForm, router]);
 
   const handleSubmit = async (projectData, actionType) => {
     const updatedProject = {
@@ -49,9 +54,16 @@ export default function EditProjectPage() {
     
     updateItem(id, updatedProject);
     clearForm();
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    router.push('/dashboard/projects');
+    setShowSuccess(true);
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      clearForm();
+      router.push('/dashboard/projects');
+    }
   };
 
   if (!hasLoaded) {
@@ -83,14 +95,39 @@ export default function EditProjectPage() {
           <h1 style={{ fontSize: '22px', color: 'var(--burgundy)', marginBottom: '4px', fontFamily: 'Verdana, sans-serif' }}>Edit Project</h1>
           <p style={{ fontSize: '11px', color: 'var(--ink-light)' }}>Update details, media, and settings for this architectural project.</p>
         </div>
-        <Link href="/dashboard/projects" style={{ textDecoration: 'none' }}>
-          <button className="secondary-btn" style={{ background: 'var(--white)', color: 'var(--burgundy)', border: '1px solid var(--stone-dark)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', fontFamily: 'Verdana, sans-serif', cursor: 'pointer' }}>
-            Cancel
-          </button>
-        </Link>
+        <button 
+          onClick={handleCancel}
+          className="secondary-btn" 
+          style={{ background: 'var(--white)', color: 'var(--burgundy)', border: '1px solid var(--stone-dark)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', fontFamily: 'Verdana, sans-serif', cursor: 'pointer' }}
+        >
+          Cancel
+        </button>
       </div>
 
       <ProjectForm mode="edit" initialData={project} onSubmit={handleSubmit} saveDraftRef={saveDraftRef} />
+
+      <UnsavedChangesModal
+        isOpen={showUnsavedConfirm}
+        onStay={() => setShowUnsavedConfirm(false)}
+        onDiscard={() => {
+          clearForm();
+          router.push('/dashboard/projects');
+        }}
+        onSaveAsDraft={onSaveAsDraft ? () => {
+          if (onSaveAsDraft.fn) onSaveAsDraft.fn();
+          clearForm();
+          router.push('/dashboard/projects');
+        } : null}
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        message="Your project has been successfully updated."
+        uploadAnotherText="Create New Project"
+        viewListText="View Project List"
+        onUploadAnother={() => router.push('/dashboard/projects/new')}
+        onViewList={() => router.push('/dashboard/projects')}
+      />
     </DashboardLayout>
   );
 }
