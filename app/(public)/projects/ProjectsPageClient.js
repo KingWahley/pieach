@@ -19,6 +19,7 @@ if (typeof window !== "undefined") {
 export default function ProjectsPageClient({ initialProjects, categories = [] }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [hasScrolledIn, setHasScrolledIn] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const introRef = useRef(null);
   const gridRef = useRef(null);
@@ -56,6 +57,21 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
         
         return false;
       });
+
+  const projectsPerPage = 12;
+  const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * projectsPerPage,
+    currentPage * projectsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    const element = document.getElementById("projects-grid-section");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   // 1. Introduction Section Animation
   useGSAP(() => {
@@ -106,7 +122,7 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
       { opacity: 0, y: 40, rotate: 0.8, scale: 0.98 },
       { opacity: 1, y: 0, rotate: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: "power3.out" }
     );
-  }, { dependencies: [hasScrolledIn, activeFilter], scope: gridRef });
+  }, { dependencies: [hasScrolledIn, activeFilter, currentPage], scope: gridRef });
 
   // 4. Featured Section Animation
   useGSAP(() => {
@@ -206,7 +222,10 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveFilter(tab.id)}
+                  onClick={() => {
+                    setActiveFilter(tab.id);
+                    setCurrentPage(1);
+                  }}
                   type="button"
                   className={`grid-tab px-5 py-2.5 text-[9px] font-bold uppercase tracking-widest transition duration-200 border rounded-sm cursor-pointer
                     ${isActive 
@@ -223,7 +242,7 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
 
           {/* 3-Column Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
+            {paginatedProjects.map((project) => (
               <Link 
                 key={project.id}
                 href={`/projects/${project.slug}`}
@@ -250,6 +269,82 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
               </Link>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 sm:gap-3 mt-16 pt-8 border-t border-neutral-100">
+              {/* Prev Button */}
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                type="button"
+                className={`px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest transition duration-200 border rounded-sm
+                  ${currentPage === 1
+                    ? "bg-neutral-50 border-neutral-100 text-neutral-300 cursor-not-allowed"
+                    : "bg-white border-neutral-200 text-neutral-500 hover:border-brand-gold hover:text-brand-gold cursor-pointer"
+                  }
+                `}
+              >
+                PREV
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1;
+                  const isActive = currentPage === page;
+                  
+                  // Only show first, last, and pages around current
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        type="button"
+                        className={`w-9 h-9 flex items-center justify-center text-[9px] font-bold uppercase tracking-widest transition duration-200 border rounded-sm cursor-pointer
+                          ${isActive
+                            ? "bg-brand-gold border-brand-gold text-brand-navy font-bold shadow-sm"
+                            : "bg-white border-neutral-200 text-neutral-500 hover:border-brand-gold hover:text-brand-gold"
+                          }
+                        `}
+                      >
+                        {page}
+                      </button>
+                    );
+                  } else if (
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  ) {
+                    return (
+                      <span key={page} className="text-neutral-400 text-xs px-1 select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                type="button"
+                className={`px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest transition duration-200 border rounded-sm
+                  ${currentPage === totalPages
+                    ? "bg-neutral-50 border-neutral-100 text-neutral-300 cursor-not-allowed"
+                    : "bg-white border-neutral-200 text-neutral-500 hover:border-brand-gold hover:text-brand-gold cursor-pointer"
+                  }
+                `}
+              >
+                NEXT
+              </button>
+            </div>
+          )}
 
         </div>
       </section>
