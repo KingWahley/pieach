@@ -52,9 +52,8 @@ export default function EditProjectPage() {
                     (projectData.galleryFiles.removedImageIds?.length || 0)
     };
     
-    updateItem(id, updatedProject);
+    await updateItem(id, updatedProject);
     clearForm();
-    setShowSuccess(true);
   };
 
   const handleCancel = () => {
@@ -104,7 +103,7 @@ export default function EditProjectPage() {
         </button>
       </div>
 
-      <ProjectForm mode="edit" initialData={project} onSubmit={handleSubmit} saveDraftRef={saveDraftRef} />
+      <ProjectForm mode="edit" initialData={project} onSubmit={handleSubmit} onSuccess={() => setShowSuccess(true)} saveDraftRef={saveDraftRef} />
 
       <UnsavedChangesModal
         isOpen={showUnsavedConfirm}

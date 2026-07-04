@@ -147,7 +147,7 @@ export default function ContactPage() {
         }]);
 
       if (error) {
-        alert("Failed to submit inquiry: " + error.message);
+        alert(`Submission failed: ${error.message}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
       } else {
         setSubmitted(true);
         setFormData({
@@ -161,7 +161,8 @@ export default function ContactPage() {
         }, 5000);
       }
     } catch (err) {
-      alert("An error occurred: " + err.message);
+      const errMsg = err?.message || 'Network connection lost.';
+      alert(`Submission failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
     } finally {
       setIsSubmitting(false);
     }

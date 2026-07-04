@@ -171,6 +171,10 @@ export default function MediaPage() {
         updateItem(tempId, { url: finalUrl });
       } catch (err) {
         console.error('Error uploading/registering media asset:', err);
+        deleteItem(tempId); // Roll back optimistic insert
+        const errMsg = err?.message || 'Network connection lost.';
+        setToast({ message: `Upload failed: ${errMsg}`, type: 'error' });
+        alert(`Upload failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
       }
     }
   };

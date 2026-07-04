@@ -257,9 +257,14 @@ export default function JobApplicationsClient() {
           const data = await res.json();
           window.open(data.url, '_blank');
           return;
+        } else {
+          setToast({ message: 'Failed to generate secure download link. Please check your network.', type: 'error' });
+          return;
         }
       } catch (e) {
         console.error('Failed to get signed URL:', e);
+        setToast({ message: 'Failed to generate secure download link. Please check your network.', type: 'error' });
+        return;
       }
     }
     window.open(url, '_blank');

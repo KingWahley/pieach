@@ -124,6 +124,7 @@ export default function EditContactDetailsPage() {
         }
       } catch (err) {
         console.error("Error loading contact details:", err);
+        setToast({ message: 'Failed to load contact details. Please check your network.', type: 'error' });
       } finally {
         setLoading(false);
       }
@@ -205,7 +206,9 @@ export default function EditContactDetailsPage() {
         }, 1500);
       }
     } catch (err) {
-      setToast({ message: 'An error occurred while saving: ' + err.message, type: 'error' });
+      const errMsg = err?.message || 'Network connection lost.';
+      setToast({ message: 'An error occurred while saving: ' + errMsg, type: 'error' });
+      alert(`Save failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
     } finally {
       setIsSaving(false);
       setShowConfirmModal(false);

@@ -18,6 +18,9 @@ export default function NewVacancyPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const saveDraftRef = useRef(null);
 
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     registerForm(true, () => {
       if (saveDraftRef.current) saveDraftRef.current();
@@ -26,10 +29,20 @@ export default function NewVacancyPage() {
     return () => clearForm();
   }, [registerForm, clearForm, router]);
 
-  const handleSave = (finalData) => {
-    createItem(finalData);
-    clearForm();
-    setShowSuccess(true);
+  const handleSave = async (finalData) => {
+    setIsSaving(true);
+    setErrorMsg('');
+    try {
+      await createItem(finalData);
+      clearForm();
+      setShowSuccess(true);
+    } catch (err) {
+      const errMsg = err?.message || 'Network connection lost.';
+      setErrorMsg(`Upload failed: ${errMsg} Please check your internet connection.`);
+      alert(`Upload failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -43,11 +56,21 @@ export default function NewVacancyPage() {
 
   return (
     <DashboardLayout title="Vacancies" subtitle="Create, edit, publish, and manage job vacancies">
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm flex items-center gap-2">
+          <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
       <VacancyForm 
         isNew={true}
         onSave={handleSave}
         onCancel={handleCancel}
         saveDraftRef={saveDraftRef}
+        isSaving={isSaving}
       />
 
       <UnsavedChangesModal

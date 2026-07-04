@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/shared/Icons';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
-export default function VacancyForm({ initialData, onSave, onCancel, isNew = false, saveDraftRef }) {
+export default function VacancyForm({ initialData, onSave, onCancel, isNew = false, saveDraftRef, isSaving = false }) {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   
@@ -241,34 +241,42 @@ export default function VacancyForm({ initialData, onSave, onCancel, isNew = fal
             <button 
               type="button"
               onClick={onCancel}
+              disabled={isSaving}
               style={{ 
                 padding: '10px 14px', border: '1px solid var(--stone-dark)', borderRadius: '6px', 
                 background: 'transparent', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer',
-                color: 'var(--ink-mid)', fontFamily: 'Verdana, sans-serif'
+                color: 'var(--ink-mid)', fontFamily: 'Verdana, sans-serif',
+                opacity: isSaving ? 0.5 : 1, pointerEvents: isSaving ? 'none' : 'auto'
               }}
             >
               Cancel
             </button>
           )}
           <button 
+            type="button"
+            disabled={isSaving}
             onClick={() => handleSave(false)}
             style={{ 
               padding: '10px 14px', border: '1px solid var(--stone-dark)', borderRadius: '6px', 
               background: 'var(--white)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer',
-              color: 'var(--burgundy)', fontFamily: 'Verdana, sans-serif'
+              color: 'var(--burgundy)', fontFamily: 'Verdana, sans-serif',
+              opacity: isSaving ? 0.5 : 1, pointerEvents: isSaving ? 'none' : 'auto'
             }}
           >
-            Save Draft
+            {isSaving ? 'Saving...' : 'Save Draft'}
           </button>
           <button 
+            type="button"
+            disabled={isSaving}
             onClick={() => handleSave(true)}
             style={{ 
               background: 'var(--burgundy)', color: 'var(--white)', border: '1px solid var(--burgundy)',
               padding: '11px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold',
-              fontFamily: 'Verdana, sans-serif', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px'
+              fontFamily: 'Verdana, sans-serif', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px',
+              opacity: isSaving ? 0.5 : 1, pointerEvents: isSaving ? 'none' : 'auto'
             }}
           >
-            Save and Publish
+            {isSaving ? 'Publishing...' : 'Save and Publish'}
           </button>
         </div>
       </div>

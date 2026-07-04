@@ -10,12 +10,40 @@ import { createServerClient } from "@/lib/supabase/server";
 
 export const revalidate = 60; // Revalidate every minute
 
-export default async function BlogPage() {
+export default async function BlogPage({ searchParams }) {
+  const resolvedParams = await searchParams;
+  const selectedCategory = resolvedParams?.category || '';
+
   const supabase = createServerClient();
-  const { data: blogPosts } = await supabase
+
+  // Fetch db categories, fallback to defaults if empty
+  const { data: dbCategories } = await supabase
+    .from('blog_categories')
+    .select('*')
+    .order('name');
+
+  const defaultCategories = [
+    { id: '1', name: 'Practice' },
+    { id: '2', name: 'Sustainability' },
+    { id: '3', name: 'Interior Design' },
+    { id: '4', name: 'Urban Planning' },
+    { id: '5', name: 'Design Theory' },
+    { id: '6', name: 'Project Running' }
+  ];
+
+  const categories = dbCategories && dbCategories.length > 0 ? dbCategories : defaultCategories;
+
+  // Build the blog post query
+  let query = supabase
     .from('blog_posts')
     .select('*')
     .eq('status', 'published');
+
+  if (selectedCategory) {
+    query = query.ilike('category', selectedCategory);
+  }
+
+  const { data: blogPosts } = await query;
 
   const BLOG_ARTICLES = (blogPosts || []).map(post => ({
     ...post,
@@ -40,24 +68,33 @@ export default async function BlogPage() {
               msOverflowStyle: 'none',
             }}
           >
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
-              PRACTICE
-            </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
-              SUSTAINABILITY
-            </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
-              INTERIOR DESIGN
-            </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
-              URBAN PLANNING
-            </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
-              DESIGN THEORY
-            </span>
-            <span className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-brand-brown/70 hover:text-brand-brown transition duration-200 cursor-pointer shrink-0">
-              PROJECT RUNNING
-            </span>
+            <Link 
+              href="/blog"
+              className={`font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] transition duration-200 shrink-0 ${
+                !selectedCategory 
+                  ? 'text-brand-gold border-b-2 border-brand-gold pb-1' 
+                  : 'text-brand-brown/70 hover:text-brand-brown'
+              }`}
+            >
+              ALL
+            </Link>
+
+            {categories.map((cat) => {
+              const isSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+              return (
+                <Link
+                  key={cat.id || cat.name}
+                  href={`/blog?category=${encodeURIComponent(cat.name)}`}
+                  className={`font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] transition duration-200 shrink-0 ${
+                    isSelected 
+                      ? 'text-brand-gold border-b-2 border-brand-gold pb-1' 
+                      : 'text-brand-brown/70 hover:text-brand-brown'
+                  }`}
+                >
+                  {cat.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

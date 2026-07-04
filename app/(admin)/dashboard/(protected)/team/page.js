@@ -123,6 +123,9 @@ export default function TeamPage() {
       setIsReorderOpen(false);
     } catch (error) {
       console.error('Error saving team order:', error);
+      const errMsg = error?.message || 'Network connection lost.';
+      setToast({ message: `Failed to save display order: ${errMsg}`, type: 'error' });
+      alert(`Save failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
     } finally {
       setIsSavingOrder(false);
     }

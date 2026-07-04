@@ -53,7 +53,7 @@ const PUBLISH_STEPS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // Publishing overlay
 // ─────────────────────────────────────────────────────────────────────────────
-function PublishingOverlay({ projectTitle, onDone }) {
+function PublishingOverlay({ projectTitle, dbPromise, onDone, onFailure }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [doneSteps,   setDoneSteps]   = useState([]);
   const [success,     setSuccess]     = useState(false);
@@ -61,22 +61,50 @@ function PublishingOverlay({ projectTitle, onDone }) {
 
   useEffect(() => {
     let idx = 0;
+    let isMounted = true;
+
+    if (dbPromise) {
+      dbPromise.catch(err => {
+        if (isMounted && onFailure) {
+          onFailure(err);
+        }
+      });
+    }
+
     const tick = () => {
+      if (!isMounted) return;
       if (idx >= PUBLISH_STEPS.length) {
-        setSuccess(true);
-        timerRef.current = setTimeout(onDone, 2000);
+        if (dbPromise) {
+          dbPromise.then(() => {
+            if (isMounted) {
+              setSuccess(true);
+              timerRef.current = setTimeout(onDone, 2000);
+            }
+          }).catch(() => {
+            // Already handled by catch above
+          });
+        } else {
+          setSuccess(true);
+          timerRef.current = setTimeout(onDone, 2000);
+        }
         return;
       }
       setCurrentStep(idx);
       timerRef.current = setTimeout(() => {
-        setDoneSteps(prev => [...prev, idx]);
-        idx++;
-        tick();
+        if (isMounted) {
+          setDoneSteps(prev => [...prev, idx]);
+          idx++;
+          tick();
+        }
       }, PUBLISH_STEPS[idx].durationMs);
     };
+
     tick();
-    return () => clearTimeout(timerRef.current);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      isMounted = false;
+      clearTimeout(timerRef.current);
+    };
+  }, [onDone, onFailure, dbPromise]);
 
   return (
     <div style={{
@@ -209,7 +237,7 @@ function PublishingOverlay({ projectTitle, onDone }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main form
 // ─────────────────────────────────────────────────────────────────────────────
-export default function ProjectForm({ mode = 'create', initialData = null, onSubmit, saveDraftRef }) {
+export default function ProjectForm({ mode = 'create', initialData = null, onSubmit, saveDraftRef, onSuccess }) {
   const router = useRouter();
   const { data: categories } = useStore(projectCategoriesStore);
 
@@ -260,6 +288,7 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
   const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
   const [isNoImageConfirmOpen, setIsNoImageConfirmOpen] = useState(false);
   const [pendingAction,        setPendingAction]        = useState(null);  // 'draft' | 'publish'
+  const [activeDbPromise,      setActiveDbPromise]      = useState(null);
   const [successMessage,       setSuccessMessage]       = useState('');
 
   // If the user publishes from the preview tab, redirect this edit tab away
@@ -309,39 +338,48 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
     return visibleExisting.length > 0 || (galleryFiles.newImages || []).length > 0 || !!coverImage;
   };
 
+  const handleOverlayFailure = (err) => {
+    setShowPublishOverlay(false);
+    setIsPublishing(false);
+    const errMsg = err?.message || (typeof err === 'string' ? err : '') || 'Network connection lost.';
+    setValidationBanner(`Upload failed: ${errMsg}`);
+    alert(`Upload failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
+  };
+
   // Called when user clicks "Save Draft" or "Publish Now" in the confirm modal
   const executeAction = async (actionType) => {
+    let dbPromise = null;
+    if (onSubmit) {
+      dbPromise = onSubmit({
+        ...formData,
+        image: coverImage,
+        additionalFields,
+        galleryFiles,
+      }, actionType);
+    } else {
+      dbPromise = new Promise(resolve => setTimeout(resolve, 3000)); // dev simulation
+    }
+
     if (actionType === 'draft') {
       setIsSaving(true);
+      try {
+        await dbPromise;
+        setIsSaving(false);
+        if (onSuccess) {
+          onSuccess();
+        }
+      } catch (err) {
+        setIsSaving(false);
+        const errMsg = err?.message || (typeof err === 'string' ? err : '') || 'Network connection lost.';
+        setValidationBanner(`Upload failed: ${errMsg}`);
+        alert(`Upload failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
+        document.querySelector('.form-drawer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } else {
       setIsPublishing(true);
       setIsPublishConfirmOpen(false);
+      setActiveDbPromise(dbPromise);
       setShowPublishOverlay(true);
-    }
-
-    try {
-      if (onSubmit) {
-        await onSubmit({
-          ...formData,
-          image: coverImage,
-          additionalFields,
-          galleryFiles,
-        }, actionType);
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 3000)); // dev simulation
-      }
-
-      if (actionType !== 'publish') {
-        setSuccessMessage('Project saved as draft. Redirecting…');
-        setIsSaving(false);
-        setTimeout(() => router.push('/dashboard/projects'), 1500);
-      }
-      // For publish: overlay handles the redirect via onDone
-    } catch (err) {
-      console.error(err);
-      setIsSaving(false);
-      setIsPublishing(false);
-      setShowPublishOverlay(false);
     }
   };
 
@@ -377,7 +415,13 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveDraftRef]);
 
-  const handleOverlayDone = () => router.push('/dashboard/projects');
+  const handleOverlayDone = () => {
+    setShowPublishOverlay(false);
+    setIsPublishing(false);
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
 
   const handlePreview = () => {
     const visibleExisting = (galleryFiles.existingImages || []).filter(
@@ -412,7 +456,12 @@ export default function ProjectForm({ mode = 'create', initialData = null, onSub
   return (
     <>
       {showPublishOverlay && (
-        <PublishingOverlay projectTitle={formData.title} onDone={handleOverlayDone} />
+        <PublishingOverlay 
+          projectTitle={formData.title} 
+          dbPromise={activeDbPromise}
+          onDone={handleOverlayDone} 
+          onFailure={handleOverlayFailure}
+        />
       )}
 
       <div className="form-drawer">

@@ -39,9 +39,8 @@ export default function NewProjectPage() {
       galleryCount: projectData.galleryFiles.newImages.length
     };
     
-    createItem(newProject);
+    await createItem(newProject);
     clearForm();
-    setShowSuccess(true);
   };
 
   const handleCancel = () => {
@@ -69,7 +68,7 @@ export default function NewProjectPage() {
         </button>
       </div>
 
-      <ProjectForm onSubmit={handleSubmit} saveDraftRef={saveDraftRef} />
+      <ProjectForm onSubmit={handleSubmit} onSuccess={() => setShowSuccess(true)} saveDraftRef={saveDraftRef} />
 
       <UnsavedChangesModal
         isOpen={showUnsavedConfirm}

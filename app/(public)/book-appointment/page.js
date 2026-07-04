@@ -309,7 +309,8 @@ export default function BookAppointmentPage() {
         });
       }
     } catch (err) {
-      alert("An error occurred during booking: " + err.message);
+      const errMsg = err?.message || 'Network connection lost.';
+      alert(`Booking failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
     } finally {
       setIsSubmitting(false);
     }

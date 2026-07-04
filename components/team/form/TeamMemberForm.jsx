@@ -367,18 +367,23 @@ export default function TeamMemberForm({ mode = 'create', initialData = null }) 
         : []
     };
 
-    if (mode === 'create') {
-      createItem({ ...finalData, id: `t${Date.now()}` });
+    try {
+      if (mode === 'create') {
+        await createItem({ ...finalData, id: `t${Date.now()}` });
+      } else {
+        await updateItem(formData.id, finalData);
+      }
       clearForm();
       setShowOverlay(false);
       setIsSaving(false);
       setShowSuccess(true);
-    } else {
-      updateItem(formData.id, finalData);
-      clearForm();
+    } catch (err) {
       setShowOverlay(false);
       setIsSaving(false);
-      setShowSuccess(true);
+      const errMsg = err?.message || 'Network connection lost.';
+      setValidationBanner(`Upload failed: ${errMsg}`);
+      alert(`Upload failed: ${errMsg}\n\nPlease check your internet connection or network status, verify you are online, and try again.`);
+      drawerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
