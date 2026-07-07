@@ -2,6 +2,7 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -100,9 +101,13 @@ export default async function BlogPostPage({ params }) {
 
         {/* Cover Image */}
         <div className="relative aspect-[16/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-md mb-12">
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url('${post.image}')` }}
+          <Image
+            src={post.image}
+            alt={post.title}
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover"
           />
         </div>
 

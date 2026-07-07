@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroSection";
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
 import DescriptionCollapse from "@/components/projects/DescriptionCollapse";
@@ -310,9 +311,12 @@ export default function ProjectPreviewPage() {
             {/* 1 Large Full-Width Image */}
             {project.gallery && project.gallery[0] && (
               <div className="relative aspect-[16/7] md:aspect-[21/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                <img
+                <Image
                   src={project.gallery[0]}
                   alt="gallery visual 1"
+                  fill
+                  sizes="100vw"
+                  priority
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
@@ -322,18 +326,24 @@ export default function ProjectPreviewPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {project.gallery && project.gallery[1] && (
                 <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
+                  <Image
                     src={project.gallery[1]}
                     alt="gallery visual 2"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>
               )}
               {project.gallery && project.gallery[2] && (
                 <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
+                  <Image
                     src={project.gallery[2]}
                     alt="gallery visual 3"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>
@@ -344,18 +354,24 @@ export default function ProjectPreviewPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {project.gallery && project.gallery[3] && (
                 <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
+                  <Image
                     src={project.gallery[3]}
                     alt="gallery visual 4"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>
               )}
               {project.gallery && project.gallery[4] && (
                 <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <img
+                  <Image
                     src={project.gallery[4]}
                     alt="gallery visual 5"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>

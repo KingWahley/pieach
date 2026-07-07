@@ -5,6 +5,7 @@ export async function POST(req) {
   try {
     const formData = await req.formData();
     const file = formData.get('file');
+    const thumbnail = formData.get('thumbnail');
     const bucket = formData.get('bucket') || 'media';
     const folder = formData.get('folder') || '';
 
@@ -27,10 +28,11 @@ export async function POST(req) {
     });
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const fileNameBase = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const fileName = `${fileNameBase}.${fileExt}`;
     const filePath = folder ? `${folder}/${fileName}` : fileName;
 
-    // Convert file to buffer
+    // Convert main file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -39,12 +41,34 @@ export async function POST(req) {
       .from(bucket)
       .upload(filePath, buffer, {
         contentType: file.type,
-        duplex: 'half'
+        duplex: 'half',
+        cacheControl: '31536000' // 1 year (public, max-age=31536000, immutable)
       });
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    }
+
+    // Upload thumbnail if provided
+    if (thumbnail) {
+      const thumbFileName = `${fileNameBase}_thumb.${fileExt}`;
+      const thumbFilePath = folder ? `${folder}/${thumbFileName}` : thumbFileName;
+
+      const thumbArrayBuffer = await thumbnail.arrayBuffer();
+      const thumbBuffer = Buffer.from(thumbArrayBuffer);
+
+      const { error: thumbUploadError } = await supabase.storage
+        .from(bucket)
+        .upload(thumbFilePath, thumbBuffer, {
+          contentType: thumbnail.type,
+          duplex: 'half',
+          cacheControl: '31536000' // 1 year cache for thumbnails as well
+        });
+
+      if (thumbUploadError) {
+        console.error('Storage thumbnail upload error (non-blocking):', thumbUploadError);
+      }
     }
 
     const { data: { publicUrl } } = supabase.storage

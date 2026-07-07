@@ -9,6 +9,12 @@ function ProjectSlider({ images, isVisible }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const isAnimating = useRef(false);
 
+  const isAdjacent = (idx) => {
+    if (images.length <= 1) return true;
+    const diff = Math.abs(idx - currentIndex);
+    return diff <= 1 || diff === images.length - 1;
+  };
+
   const slideTo = (direction) => {
     if (isAnimating.current) return;
     isAnimating.current = true;
@@ -50,12 +56,16 @@ function ProjectSlider({ images, isVisible }) {
             key={idx} 
             className={`slider-image-${idx} absolute inset-0 h-full w-full ${idx === 0 ? "opacity-100" : "opacity-0 invisible"}`}
           >
-            <Image
-              src={img.src || "/placeholder.svg"}
-              alt={img.alt || `Slider image ${idx + 1}`}
-              fill
-              className="object-cover"
-            />
+            {isAdjacent(idx) && (
+              <Image
+                src={img.src || "/placeholder.svg"}
+                alt={img.alt || `Slider image ${idx + 1}`}
+                fill
+                sizes="100vw"
+                priority={idx === 0}
+                className="object-cover"
+              />
+            )}
             {(img.title || img.description) && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-6 pb-20 pt-20 md:px-12 md:pb-24 md:pt-40 text-white flex flex-col items-start">
                 {img.title && (

@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'pieach.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'lyexdygijcjuteawdvfa.supabase.co',
+      },
     ],
   },
 };

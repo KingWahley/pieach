@@ -2,6 +2,7 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroSection";
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
 import CTASection from "@/components/sections/CTASection";
@@ -198,9 +199,12 @@ export default async function ProjectDetailsPage({ params }) {
             <div className="space-y-6">
               {/* First image: full-width hero */}
               <div className="relative aspect-[16/7] md:aspect-[21/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                <img
+                <Image
                   src={project.gallery[0]}
                   alt={`${project.title} – image 1`}
+                  fill
+                  sizes="100vw"
+                  priority
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
@@ -213,18 +217,24 @@ export default async function ProjectDetailsPage({ params }) {
                   <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {a && (
                       <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                        <img
+                        <Image
                           src={a}
                           alt={`${project.title} – image ${2 + rowIdx * 2}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          loading="lazy"
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                       </div>
                     )}
                     {b && (
                       <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                        <img
+                        <Image
                           src={b}
                           alt={`${project.title} – image ${3 + rowIdx * 2}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          loading="lazy"
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                       </div>
@@ -275,10 +285,16 @@ export default async function ProjectDetailsPage({ params }) {
                 >
                   {/* Image Container with zoom effect */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-                    <div
-                      className="absolute inset-0 bg-cover bg-center zoom-effect"
-                      style={{ backgroundImage: `url('${proj.image}')` }}
-                    />
+                    <div className="absolute inset-0 zoom-effect">
+                      <Image
+                        src={proj.image}
+                        alt={proj.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        loading="lazy"
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300" />
                   </div>
 

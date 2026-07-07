@@ -3,6 +3,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ProjectsHeroSection from "@/components/sections/ProjectsHeroSection";
 import BlogSection from "@/components/sections/BlogSection";
 import PhilosophyQuoteSection from "@/components/sections/PhilosophyQuoteSection";
@@ -250,10 +251,16 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
               >
                 {/* Square Image container with hover zoom */}
                 <div className="relative aspect-square overflow-hidden bg-neutral-100">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center zoom-effect"
-                    style={{ backgroundImage: `url('${project.image}')` }}
-                  />
+                  <div className="absolute inset-0 zoom-effect">
+                    <Image
+                      src={project.image}
+                      alt={project.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                  </div>
                   <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition duration-300" />
                 </div>
 

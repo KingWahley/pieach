@@ -5,6 +5,7 @@ import Modal from './Modal';
 import { useStore } from '@/hooks/useStore';
 import { mediaStore } from '@/lib/store';
 import { Icons } from '@/components/shared/Icons';
+import { getSupabaseThumbnailUrl } from '@/lib/utils';
 
 export default function MediaPickerModal({ isOpen, onClose, onSelect, title = "Select Media", allowMultiple = false }) {
   const { data } = useStore(mediaStore);
@@ -189,7 +190,14 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect, title = "S
                   }
                 }}
               >
-                <img src={item.url} alt={item.filename} />
+                <img 
+                  src={getSupabaseThumbnailUrl(item.url)} 
+                  alt={item.filename} 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = item.url;
+                  }} 
+                />
                 <div className="selection-indicator">
                   <Icons.check className="w-3 h-3" />
                 </div>

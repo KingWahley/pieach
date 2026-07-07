@@ -5,6 +5,7 @@ import Modal from '@/components/modals/Modal';
 import StatusPill from '@/components/shared/StatusPill';
 import { Icons } from '@/components/shared/Icons';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function BlogPreview({ isOpen, onClose, post }) {
   if (!post) return null;
@@ -183,8 +184,15 @@ export default function BlogPreview({ isOpen, onClose, post }) {
         </div>
 
         {post.image && (
-          <div className="blog-hero">
-            <img src={post.image} alt={post.title} />
+          <div className="blog-hero relative">
+            <Image 
+              src={post.image} 
+              alt={post.title} 
+              fill
+              sizes="(max-width: 768px) 100vw, 800px"
+              priority
+              className="object-cover"
+            />
           </div>
         )}
 

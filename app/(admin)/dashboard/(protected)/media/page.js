@@ -15,6 +15,7 @@ import { useViewMode } from '@/hooks/useViewMode';
 import Pagination from '@/components/shared/Pagination';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
 import Toast from '@/components/shared/Toast';
+import { getSupabaseThumbnailUrl } from '@/lib/utils';
 
 export default function MediaPage() {
   const { data, createItem, updateItem, deleteItem } = useStore(mediaStore);
@@ -314,8 +315,12 @@ export default function MediaPage() {
                       <div className="aspect-square bg-[var(--cream)] flex items-center justify-center overflow-hidden relative">
                         {file.type?.includes('image') ? (
                           <img 
-                            src={file.url} 
+                            src={getSupabaseThumbnailUrl(file.url)} 
                             alt={file.filename} 
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = file.url;
+                            }}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
                           />
                         ) : (
@@ -385,7 +390,14 @@ export default function MediaPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded bg-[var(--cream)] border border-[var(--stone-dark)] flex items-center justify-center overflow-hidden shrink-0">
                               {file.type?.includes('image') ? (
-                                <img src={file.url} className="w-full h-full object-cover" />
+                                <img 
+                                  src={getSupabaseThumbnailUrl(file.url)} 
+                                  className="w-full h-full object-cover" 
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = file.url;
+                                  }}
+                                />
                               ) : (
                                 <Icons.document className="w-5 h-5 text-[var(--ink-light)]" />
                               )}

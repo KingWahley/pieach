@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import OurTeamSection from "@/components/sections/OurTeamSection";
 import TeamValuesSection from "@/components/sections/TeamValuesSection";
 import CTASection from "@/components/sections/CTASection";
@@ -319,9 +320,12 @@ export default function TeamPreviewPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start mb-20">
             <div className="lg:col-span-5 relative aspect-[3/4] rounded-sm overflow-hidden bg-neutral-100 shadow-lg border border-neutral-200/50">
-              <img
+              <Image
                 src={member.image || '/assets/team/default.png'}
                 alt={displayName}
+                fill
+                sizes="(max-width: 768px) 100vw, 40vw"
+                priority
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000003_1px,transparent_1px),linear-gradient(to_bottom,#00000003_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
