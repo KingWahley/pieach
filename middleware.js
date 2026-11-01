@@ -29,6 +29,8 @@ function clearAuthCookiesAndRedirect(request) {
   const response = NextResponse.redirect(loginUrl);
   response.cookies.delete('pieach_session');
   response.cookies.delete('pieach_stay_logged_in');
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.headers.set('x-middleware-cache', 'no-cache');
   return response;
 }
 
@@ -37,6 +39,22 @@ export async function middleware(request) {
 
   // Protect all routes under /dashboard except the login page
   if (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/login')) {
+    // 1. Never redirect or mutate cookies on background prefetch requests.
+    // Redirecting a prefetch poisons the Next.js client-side Router Cache with a cached
+    // redirect to /dashboard/login and wipes cookies in the background.
+    const isPrefetch =
+      request.headers.get('x-middleware-prefetch') === '1' ||
+      request.headers.get('next-router-prefetch') === '1' ||
+      request.headers.get('purpose') === 'prefetch' ||
+      request.headers.get('sec-purpose') === 'prefetch';
+
+    if (isPrefetch) {
+      const res = NextResponse.next();
+      res.headers.set('Cache-Control', 'no-store');
+      res.headers.set('x-middleware-cache', 'no-cache');
+      return res;
+    }
+
     const sessionCookie = request.cookies.get('pieach_session');
 
     if (!sessionCookie || !sessionCookie.value) {
@@ -49,20 +67,10 @@ export async function middleware(request) {
       return clearAuthCookiesAndRedirect(request);
     }
 
-    // 1. Fast Local JWT Validation (Expiry Check)
+    // 2. Fast Local JWT Validation (Expiry Check)
     const payload = decodeJwt(token);
     if (!payload || !payload.exp || payload.exp * 1000 < Date.now()) {
       return clearAuthCookiesAndRedirect(request);
-    }
-
-    // 2. Performance Optimization: Skip external network auth checks for prefetch requests.
-    // Prefetches are triggered by link hovering and don't need cryptographic network verification.
-    const isPrefetch = 
-      request.headers.get('x-middleware-prefetch') === '1' ||
-      request.headers.get('purpose') === 'prefetch';
-
-    if (isPrefetch) {
-      return NextResponse.next();
     }
 
     // 3. Full Cryptographic Verification for actual page loads / navigations

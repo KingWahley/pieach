@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
 function setAuthCookie(name, value, maxAgeSeconds) {
@@ -18,7 +17,6 @@ function clearAuthCookies() {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -55,7 +53,7 @@ export default function LoginPage() {
             } else {
               setAuthCookie('pieach_session', session.access_token);
             }
-            router.replace('/dashboard');
+            window.location.replace('/dashboard');
             return;
           }
         }
@@ -68,7 +66,7 @@ export default function LoginPage() {
     };
     
     checkSession();
-  }, [router]);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -114,7 +112,8 @@ export default function LoginPage() {
           document.cookie = `pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC${secureFlag}; SameSite=Lax`;
         }
         
-        router.replace('/dashboard');
+        // Use a full document navigation so Next.js Router Cache is completely fresh
+        window.location.replace('/dashboard');
       } else {
         setErrorMsg('Authentication failed.');
         setIsLoading(false);
