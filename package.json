@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node --max-http-header-size=524288 ./node_modules/next/dist/bin/next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node --max-http-header-size=524288 ./node_modules/next/dist/bin/next start",
     "lint": "eslint"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "agentation": "^3.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4"

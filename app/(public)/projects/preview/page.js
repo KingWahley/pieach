@@ -3,14 +3,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
 import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroSection";
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
 import DescriptionCollapse from "@/components/projects/DescriptionCollapse";
 import CTASection from "@/components/sections/CTASection";
+import { ProjectGalleryWithLightbox } from "@/components/projects/ProjectLightbox";
 import { projectsStore } from '@/lib/store';
 import ConfirmationModal from '@/components/modals/ConfirmationModal';
+import { formatProjectStatus, normalizeProjectCategories } from '@/data/projectOptions';
 
 export default function ProjectPreviewPage() {
   const router = useRouter();
@@ -29,11 +29,10 @@ export default function ProjectPreviewPage() {
       localStorage.removeItem('pieach-project-preview');
     };
 
-    // Remove item when tab is closed, navigated away, or unmounted
+    // Remove item when tab is closed
     window.addEventListener('unload', handleCleanup);
     return () => {
       window.removeEventListener('unload', handleCleanup);
-      handleCleanup();
     };
   }, []);
 
@@ -47,23 +46,28 @@ export default function ProjectPreviewPage() {
       
       const finalProjectData = {
         title: project.title,
-        status: project.status || 'Ongoing',
+        status: formatProjectStatus(project.status) || 'Ongoing',
         location: project.location,
-        category: project.category,
-        subtitle: project.subtitle,
+        category: normalizeProjectCategories(project.category),
+        subtitle: normalizeProjectCategories(project.category || project.subtitle),
         description: project.description,
         image: project.image || (project.gallery && project.gallery[0]) || '/assets/projects/default.png',
         gallery: project.gallery || [],
         galleryCount: project.gallery ? project.gallery.length : 0,
         additionalFields: project.additionalFields || [],
+        specs: project.specs || {},
+        siteArea: project.specs?.siteArea ?? project.siteArea ?? '',
+        builtArea: project.specs?.builtArea ?? project.builtArea ?? '',
+        leadArchitect: project.specs?.leadArchitect ?? project.leadArchitect ?? '',
+        services: project.specs?.services ?? project.services ?? '',
         slug: project.slug || project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         date: project.date || new Date().toISOString().split('T')[0]
       };
 
       if (isEdit) {
-        projectsStore.updateItem(project.id, finalProjectData);
+        await projectsStore.updateItem(project.id, finalProjectData);
       } else {
-        projectsStore.createItem(finalProjectData);
+        await projectsStore.createItem(finalProjectData);
       }
 
       // Signal the opener edit tab to navigate away (prevents double-submit)
@@ -204,7 +208,7 @@ export default function ProjectPreviewPage() {
       {/* 1. Hero Banner Section */}
       <ProjectDetailsHeroSection 
         title={project.title || 'Untitled Project'}
-        category={project.category || 'Category'}
+        category={normalizeProjectCategories(project.category) || 'Category'}
         location={project.location || 'Location, State, Country'}
         image={project.image || (project.gallery && project.gallery[0]) || '/assets/projects/default.png'}
       />
@@ -231,8 +235,8 @@ export default function ProjectPreviewPage() {
               {/* Technical Specs Grid without borders (Only displaying non-empty specs) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8">
                 {[
-                  { label: 'PROJECT TYPE', value: project.specs?.projectType || project.category },
-                  { label: 'STATUS', value: project.specs?.status || project.status },
+                  { label: 'PROJECT TYPE', value: normalizeProjectCategories(project.category || project.specs?.projectType) },
+                  { label: 'STATUS', value: formatProjectStatus(project.specs?.status || project.status) },
                   { label: 'SITE AREA', value: project.specs?.siteArea },
                   { label: 'LEAD ARCHITECT', value: project.specs?.leadArchitect },
                   { label: 'BUILT AREA', value: project.specs?.builtArea },
@@ -306,78 +310,10 @@ export default function ProjectPreviewPage() {
             </h2>
           </div>
 
-          {/* Grid Layout of 5 Images */}
-          <div className="space-y-6">
-            {/* 1 Large Full-Width Image */}
-            {project.gallery && project.gallery[0] && (
-              <div className="relative aspect-[16/7] md:aspect-[21/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                <Image
-                  src={project.gallery[0]}
-                  alt="gallery visual 1"
-                  fill
-                  sizes="100vw"
-                  priority
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              </div>
-            )}
-
-            {/* Row 2: 2 Images */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {project.gallery && project.gallery[1] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <Image
-                    src={project.gallery[1]}
-                    alt="gallery visual 2"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              {project.gallery && project.gallery[2] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <Image
-                    src={project.gallery[2]}
-                    alt="gallery visual 3"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Row 3: 2 Images */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {project.gallery && project.gallery[3] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <Image
-                    src={project.gallery[3]}
-                    alt="gallery visual 4"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              {project.gallery && project.gallery[4] && (
-                <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                  <Image
-                    src={project.gallery[4]}
-                    alt="gallery visual 5"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          <ProjectGalleryWithLightbox
+            gallery={project.gallery}
+            title={project.title || 'Untitled Project'}
+          />
 
         </div>
       </section>

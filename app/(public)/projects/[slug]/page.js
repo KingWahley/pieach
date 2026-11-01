@@ -7,6 +7,8 @@ import ProjectDetailsHeroSection from "@/components/sections/ProjectDetailsHeroS
 import TeamQuoteSection from "@/components/sections/TeamQuoteSection";
 import CTASection from "@/components/sections/CTASection";
 import DescriptionCollapse from "@/components/projects/DescriptionCollapse";
+import { ProjectGalleryWithLightbox } from "@/components/projects/ProjectLightbox";
+import { formatProjectStatus, normalizeProjectCategories } from "@/data/projectOptions";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -91,7 +93,7 @@ export default async function ProjectDetailsPage({ params }) {
       {/* 1. Hero Banner Section */}
       <ProjectDetailsHeroSection 
         title={project.title}
-        category={project.category}
+        category={normalizeProjectCategories(project.category)}
         location={project.location}
         image={project.image}
       />
@@ -118,8 +120,8 @@ export default async function ProjectDetailsPage({ params }) {
               {/* Technical Specs Grid without borders (Only displaying non-empty specs) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8">
                 {[
-                  { label: 'PROJECT TYPE', value: project.specs?.projectType || project.category },
-                  { label: 'STATUS', value: project.specs?.status || project.status },
+                  { label: 'PROJECT TYPE', value: normalizeProjectCategories(project.category || project.specs?.projectType) },
+                  { label: 'STATUS', value: formatProjectStatus(project.specs?.status || project.status) },
                   { label: 'SITE AREA', value: project.specs?.siteArea },
                   { label: 'LEAD ARCHITECT', value: project.specs?.leadArchitect },
                   { label: 'BUILT AREA', value: project.specs?.builtArea },
@@ -194,56 +196,8 @@ export default async function ProjectDetailsPage({ params }) {
             </h2>
           </div>
 
-          {/* Dynamic gallery — first image full-width, then all remaining in pairs */}
-          {project.gallery && project.gallery.length > 0 && (
-            <div className="space-y-6">
-              {/* First image: full-width hero */}
-              <div className="relative aspect-[16/7] md:aspect-[21/9] w-full rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                <Image
-                  src={project.gallery[0]}
-                  alt={`${project.title} – image 1`}
-                  fill
-                  sizes="100vw"
-                  priority
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Remaining images: 2 per row */}
-              {Array.from({ length: Math.ceil((project.gallery.length - 1) / 2) }).map((_, rowIdx) => {
-                const a = project.gallery[1 + rowIdx * 2];
-                const b = project.gallery[2 + rowIdx * 2];
-                return (
-                  <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {a && (
-                      <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                        <Image
-                          src={a}
-                          alt={`${project.title} – image ${2 + rowIdx * 2}`}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          loading="lazy"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    {b && (
-                      <div className="relative aspect-[16/10] rounded-sm overflow-hidden bg-neutral-100 shadow-sm border border-neutral-100">
-                        <Image
-                          src={b}
-                          alt={`${project.title} – image ${3 + rowIdx * 2}`}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          loading="lazy"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* Dynamic gallery — first image full-width, then all remaining in pairs (with Lightbox) */}
+          <ProjectGalleryWithLightbox gallery={project.gallery} title={project.title} />
 
           {/* Button to Projects Page */}
           <div className="mt-16 text-center">
@@ -281,10 +235,10 @@ export default async function ProjectDetailsPage({ params }) {
                 <Link
                   key={proj.id}
                   href={`/projects/${proj.slug}`}
-                  className="group flex flex-col justify-between border border-neutral-200/40 bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300"
+                  className="group flex flex-col justify-between border border-neutral-200/40 bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300 cursor-pointer"
                 >
                   {/* Image Container with zoom effect */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100 cursor-pointer">
                     <div className="absolute inset-0 zoom-effect">
                       <Image
                         src={proj.image}
@@ -292,7 +246,7 @@ export default async function ProjectDetailsPage({ params }) {
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
                         loading="lazy"
-                        className="object-cover"
+                        className="object-cover object-top cursor-pointer"
                       />
                     </div>
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300" />

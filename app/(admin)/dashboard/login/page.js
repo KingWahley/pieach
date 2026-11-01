@@ -5,6 +5,18 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
+function setAuthCookie(name, value, maxAgeSeconds) {
+  const secureFlag = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+  const maxAgeFlag = typeof maxAgeSeconds === 'number' ? `; max-age=${maxAgeSeconds}` : '';
+  document.cookie = `${name}=${value}; path=/${maxAgeFlag}${secureFlag}; SameSite=Lax`;
+}
+
+function clearAuthCookies() {
+  const secureFlag = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC${secureFlag}; SameSite=Lax`;
+  document.cookie = `pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC${secureFlag}; SameSite=Lax`;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -16,27 +28,41 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const isExpiredRedirect = params.get('expired') === '1';
+
+      // If middleware just rejected our cookie and redirected here, do NOT redirect back into a loop
+      if (isExpiredRedirect) {
+        clearAuthCookies();
+        sessionStorage.removeItem('pieach_active_session');
+        await supabase.auth.signOut();
+        window.history.replaceState({}, '', '/dashboard/login');
+        return;
+      }
+
       const isStayLoggedInCookie = document.cookie.includes('pieach_stay_logged_in=true');
       const isActiveSession = sessionStorage.getItem('pieach_active_session') === 'true';
 
       if (isStayLoggedInCookie || isActiveSession) {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          if (isStayLoggedInCookie) {
-            const maxAge = 30 * 24 * 60 * 60; // 30 days
-            document.cookie = `pieach_session=${session.access_token}; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
-          } else {
-            document.cookie = `pieach_session=${session.access_token}; path=/; Secure; SameSite=Lax`;
+        if (session?.access_token) {
+          // Verify with Supabase user endpoint so we never loop with middleware
+          const { data: { user }, error } = await supabase.auth.getUser(session.access_token);
+          if (!error && user) {
+            if (isStayLoggedInCookie) {
+              const maxAge = 30 * 24 * 60 * 60; // 30 days
+              setAuthCookie('pieach_session', session.access_token, maxAge);
+            } else {
+              setAuthCookie('pieach_session', session.access_token);
+            }
+            router.replace('/dashboard');
+            return;
           }
-          router.push('/dashboard');
-          router.refresh();
-          return;
         }
       }
 
       // Clean state if we shouldn't be logged in
-      document.cookie = 'pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
-      document.cookie = 'pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
+      clearAuthCookies();
       sessionStorage.removeItem('pieach_active_session');
       await supabase.auth.signOut();
     };
@@ -80,15 +106,15 @@ export default function LoginPage() {
         
         if (stayLoggedIn) {
           const maxAge = 30 * 24 * 60 * 60; // 30 days
-          document.cookie = `pieach_session=${data.session.access_token}; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
-          document.cookie = `pieach_stay_logged_in=true; path=/; max-age=${maxAge}; Secure; SameSite=Lax`;
+          setAuthCookie('pieach_session', data.session.access_token, maxAge);
+          setAuthCookie('pieach_stay_logged_in', 'true', maxAge);
         } else {
-          document.cookie = `pieach_session=${data.session.access_token}; path=/; Secure; SameSite=Lax`;
-          document.cookie = `pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax`;
+          setAuthCookie('pieach_session', data.session.access_token);
+          const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+          document.cookie = `pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC${secureFlag}; SameSite=Lax`;
         }
         
-        router.push('/dashboard');
-        router.refresh();
+        router.replace('/dashboard');
       } else {
         setErrorMsg('Authentication failed.');
         setIsLoading(false);

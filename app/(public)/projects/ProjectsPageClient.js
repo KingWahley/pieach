@@ -137,8 +137,8 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
     });
     tl.fromTo(
       ".featured-img-wrap",
-      { opacity: 0, scale: 1.15 },
-      { opacity: 0.85, scale: 1.02, duration: 1.2, ease: "power2.out" }
+      { opacity: 0, scale: 1.05 },
+      { opacity: 0.85, scale: 1, duration: 1.2, ease: "power2.out" }
     )
     .fromTo(
       ".featured-el",
@@ -250,7 +250,7 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
                 className="grid-card group flex flex-col justify-between border border-neutral-100/50 bg-[#fafafa]/40 rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition duration-300 cursor-pointer"
               >
                 {/* Square Image container with hover zoom */}
-                <div className="relative aspect-square overflow-hidden bg-neutral-100">
+                <div className="relative aspect-square overflow-hidden bg-neutral-100 cursor-pointer">
                   <div className="absolute inset-0 zoom-effect">
                     <Image
                       src={project.image}
@@ -258,7 +258,7 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       loading="lazy"
-                      className="object-cover"
+                      className="object-cover object-top cursor-pointer"
                     />
                   </div>
                   <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition duration-300" />
@@ -364,7 +364,7 @@ export default function ProjectsPageClient({ initialProjects, categories = [] })
             {/* Left Column: Full-Bleed Image (Grayscale Facade) */}
             <div className="lg:col-span-6 relative aspect-[4/3] rounded-sm overflow-hidden bg-neutral-800 shadow-2xl border border-white/5">
               <div 
-                className="featured-img-wrap absolute inset-0 bg-cover bg-center opacity-85 mix-blend-luminosity hover:opacity-100 transition duration-500 scale-102"
+                className="featured-img-wrap absolute inset-0 bg-cover bg-top opacity-85 mix-blend-luminosity hover:opacity-100 transition duration-500"
                 style={{ backgroundImage: "url('/assets/our work/Landmark EcoFriendlyOffice.png')" }}
               />
               <div className="absolute inset-0 bg-brand-brown/10 pointer-events-none" />

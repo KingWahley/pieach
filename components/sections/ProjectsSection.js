@@ -138,7 +138,7 @@ function MobileProjectsShowcase({ images }) {
             <Link
               key={idx}
               href={href}
-              className="mobile-project-card shrink-0 snap-center relative w-[78vw] aspect-[3/4] rounded-sm overflow-hidden border border-white/5 mr-5 first:ml-[11vw] last:mr-[11vw] bg-neutral-950 shadow-2xl active:scale-98 transition duration-300 block"
+              className="mobile-project-card shrink-0 snap-center relative w-[78vw] aspect-[3/4] rounded-sm overflow-hidden border border-white/5 mr-5 first:ml-[11vw] last:mr-[11vw] bg-neutral-950 shadow-2xl active:scale-98 transition duration-300 block cursor-pointer"
             >
               {/* Image */}
               <div className="absolute inset-0 z-0">
@@ -147,7 +147,7 @@ function MobileProjectsShowcase({ images }) {
                   alt={img.alt || img.title}
                   fill
                   sizes="78vw"
-                  className="object-cover"
+                  className="object-cover object-top"
                 />
               </div>
 

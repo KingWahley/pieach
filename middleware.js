@@ -23,6 +23,15 @@ function decodeJwt(token) {
   }
 }
 
+function clearAuthCookiesAndRedirect(request) {
+  const loginUrl = new URL('/dashboard/login', request.url);
+  loginUrl.searchParams.set('expired', '1');
+  const response = NextResponse.redirect(loginUrl);
+  response.cookies.delete('pieach_session');
+  response.cookies.delete('pieach_stay_logged_in');
+  return response;
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
@@ -31,16 +40,19 @@ export async function middleware(request) {
     const sessionCookie = request.cookies.get('pieach_session');
 
     if (!sessionCookie || !sessionCookie.value) {
-      const loginUrl = new URL('/dashboard/login', request.url);
-      return NextResponse.redirect(loginUrl);
+      return clearAuthCookiesAndRedirect(request);
+    }
+
+    // Guard against corrupted or bloated token strings in cookie
+    const token = sessionCookie.value.trim();
+    if (token.length > 4096 || token.includes(' ')) {
+      return clearAuthCookiesAndRedirect(request);
     }
 
     // 1. Fast Local JWT Validation (Expiry Check)
-    const payload = decodeJwt(sessionCookie.value);
+    const payload = decodeJwt(token);
     if (!payload || !payload.exp || payload.exp * 1000 < Date.now()) {
-      const response = NextResponse.redirect(new URL('/dashboard/login', request.url));
-      response.cookies.delete('pieach_session');
-      return response;
+      return clearAuthCookiesAndRedirect(request);
     }
 
     // 2. Performance Optimization: Skip external network auth checks for prefetch requests.
@@ -55,25 +67,27 @@ export async function middleware(request) {
 
     // 3. Full Cryptographic Verification for actual page loads / navigations
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
       
       if (!supabaseUrl || !supabaseAnonKey) {
         return NextResponse.next(); // Skip if env vars aren't loaded yet
       }
 
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { data: { user }, error } = await supabase.auth.getUser(sessionCookie.value);
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      });
+      const { data: { user }, error } = await supabase.auth.getUser(token);
 
       if (error || !user) {
-        const response = NextResponse.redirect(new URL('/dashboard/login', request.url));
-        response.cookies.delete('pieach_session');
-        return response;
+        return clearAuthCookiesAndRedirect(request);
       }
     } catch (e) {
-      const response = NextResponse.redirect(new URL('/dashboard/login', request.url));
-      response.cookies.delete('pieach_session');
-      return response;
+      return clearAuthCookiesAndRedirect(request);
     }
   }
 

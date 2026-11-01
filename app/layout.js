@@ -1,4 +1,5 @@
 import { Outfit, Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import { Agentation } from "agentation";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col bg-white text-[#111111] selection:bg-brand-gold selection:text-brand-navy">
         {children}
+        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   );

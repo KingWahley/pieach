@@ -52,7 +52,7 @@ export default function ProjectDetailsHeroSection({ title, category, location, i
       {/* Background image with overlay */}
       <div
         ref={bgRef}
-        className="absolute inset-0 z-0 bg-cover bg-center scale-105"
+        className="absolute inset-0 z-0 bg-cover bg-top"
         style={{ backgroundImage: `url('${image}')` }}
       />
       

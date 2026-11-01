@@ -63,7 +63,7 @@ function ProjectSlider({ images, isVisible }) {
                 fill
                 sizes="100vw"
                 priority={idx === 0}
-                className="object-cover"
+                className="object-cover object-top"
               />
             )}
             {(img.title || img.description) && (
@@ -212,7 +212,7 @@ export function ZoomParallax({ images }) {
                     alt={alt || `Parallax image ${index + 1}`}
                     fill
                     sizes="(max-width: 768px) 65vw, 25vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
+                    className="object-cover object-top transition duration-500 group-hover:scale-105"
                   />
                   {(title || description) && (
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-2 pb-2 pt-6 md:px-4 md:pb-4 md:pt-10 text-white">

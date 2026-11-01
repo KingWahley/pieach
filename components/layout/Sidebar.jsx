@@ -44,12 +44,12 @@ export default function Sidebar() {
 
   const handleLogout = useCallback(async () => {
     try {
-      document.cookie = 'pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
-      document.cookie = 'pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=Lax';
+      const secureFlag = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `pieach_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC${secureFlag}; SameSite=Lax`;
+      document.cookie = `pieach_stay_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC${secureFlag}; SameSite=Lax`;
       sessionStorage.removeItem('pieach_active_session');
       await supabase.auth.signOut();
-      router.push('/dashboard/login');
-      router.refresh();
+      router.replace('/dashboard/login');
     } catch (err) {
       console.error('Logout error:', err);
     }

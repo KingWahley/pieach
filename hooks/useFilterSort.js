@@ -25,8 +25,8 @@ export function useFilterSort(data = [], initialFilters = {}, initialSort = { ke
       if (value && value !== 'all') {
         result = result.filter((item) => {
           if (key === 'status') {
-            const itemStatus = String(item[key] || '').toLowerCase();
-            const filterStatus = String(value).toLowerCase();
+            const itemStatus = String(item[key] || '').toLowerCase().replace(/_/g, ' ');
+            const filterStatus = String(value).toLowerCase().replace(/_/g, ' ');
             return itemStatus === filterStatus || 
                    (filterStatus === 'open' && itemStatus === 'published') ||
                    (filterStatus === 'published' && itemStatus === 'open') ||

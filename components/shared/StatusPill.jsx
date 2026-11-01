@@ -1,6 +1,12 @@
 import React from 'react';
 
 const statusConfig = {
+  // Project Statuses
+  completed: { className: 's-approved', label: 'COMPLETED' },
+  ongoing: { className: 's-pending', label: 'ONGOING' },
+  on_hold: { className: 's-opened', label: 'ON HOLD' },
+  'on hold': { className: 's-opened', label: 'ON HOLD' },
+
   // Vacancy Statuses
   published: { className: 's-approved', label: 'OPEN' },
   open: { className: 's-approved', label: 'OPEN' },
@@ -24,7 +30,10 @@ const statusConfig = {
 };
 
 export default function StatusPill({ status }) {
-  const config = statusConfig[status?.toLowerCase()] || { className: 's-opened', label: status };
+  const config = statusConfig[status?.toLowerCase()] || {
+    className: 's-opened',
+    label: status ? String(status).replace(/_/g, ' ') : status,
+  };
   return (
     <span className={`status-pill ${config.className}`}>
       {config.label}

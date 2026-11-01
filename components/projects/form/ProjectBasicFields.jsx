@@ -1,5 +1,5 @@
 import React from 'react';
-import { projectStatuses, projectCategories, countryOptions } from '@/data/projectOptions';
+import { projectStatuses, projectCategories, normalizeProjectCategories } from '@/data/projectOptions';
 import RichTextEditor from './RichTextEditor';
 
 export default function ProjectBasicFields({ formData, handleChange, errors, categories = [] }) {
@@ -41,16 +41,18 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
         <label>Project Categories {errors.category && <span style={{ color: 'var(--red)', textTransform: 'none', marginLeft: '4px' }}>*Required</span>}</label>
         <div className="category-tags-list">
           {(() => {
-            const list = categories.length > 0 
+            const list = (categories.length > 0 
               ? categories.map(cat => cat.name) 
-              : projectCategories.map(cat => cat.label);
+              : projectCategories.map(cat => cat.label)
+            ).map(name => (name || '').trim()).filter(Boolean);
             
-            const selectedCats = formData.category 
-              ? formData.category.split(',').map(c => c.trim()).filter(Boolean) 
+            const normalizedCategoryStr = normalizeProjectCategories(formData.category);
+            const selectedCats = normalizedCategoryStr
+              ? normalizedCategoryStr.split(',').map(c => c.trim()).filter(Boolean) 
               : [];
  
             return list.map(catName => {
-              const catLower = catName.toLowerCase().trim();
+              const catLower = catName.toLowerCase();
               const isSelected = selectedCats.some(c => {
                 const selLower = c.toLowerCase().trim();
                 return selLower === catLower ||
@@ -85,7 +87,7 @@ export default function ProjectBasicFields({ formData, handleChange, errors, cat
                     handleChange({
                       target: {
                         name: 'category',
-                        value: newSelected.join(', ')
+                        value: normalizeProjectCategories(newSelected.join(', '))
                       }
                     });
                   }}
